@@ -12,9 +12,10 @@ data = np.genfromtxt("C:\Users\Ed\Documents\GitHub\P_Force_Curve\Spec1.txt", \
 data_t = np.transpose(data)
 data_t[0] = 10**9 * data_t[0]
 
-Fcurves = (data_t.shape[0]-1)/2
+numCurves = (data_t.shape[0]-1)/2
 
-print data_t[2].argmax()
+maxPos = data_t[2].argmax()
+minPos = data_t[2].argmin()
 
 plt.figure()
 plt.plot(data_t[0], data_t[2], 'r')
