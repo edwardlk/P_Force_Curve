@@ -21,17 +21,13 @@ numCurves = (data_t.shape[0]-1)/2
 maxPos = data_t[4].argmax()
 minPos = data_t[4].argmin()
 
-print "MinPos = ", minPos
-print "MaxPos = ", maxPos
-
+# 0.059 is slope of contact curve, need to add code to find that first.
 data_t[4] = data_t[4]/0.059
-
-Force = data_t[4] * 0.035
 
 #Finding & fitting the baseline
 popt, pcov = curve_fit(linearF, data_t[0][0:(minPos-1000)], data_t[4][0:(minPos-1000)])
-print "popt = ", popt[1]
 
+# Plot curve, y_l showing deflection and y_r showing force
 fig = plt.figure()
 ax1 = fig.add_subplot(111)
 ax1.set_xlabel('Distance (nm)')
