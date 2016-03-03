@@ -8,6 +8,10 @@ from scipy.optimize import curve_fit
 def linearF(x, m, b):
     return m * x + b
 
+def WLCmodel(x,T,P,L):
+	k_b = 1.380*10**(-23) # J/K
+	return (k_b*T)*(0.25*(1-x/L)**(-2)-0.25+x/L)/P
+
 # Import Data
 # Row 0 - x-axis data in meters, then convert to nm
 # Row 1+ - alternating approach/retract curves, in nm
