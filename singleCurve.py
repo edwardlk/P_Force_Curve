@@ -1,47 +1,311 @@
-from os import *
-import math
-import numpy as np
 import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit
-# import Tkinter, tkFileDialog
+import numpy as np
+from scipy import stats
 
-def linearF(x, m, b):
-    return m * x + b
+#filePath = "C:\Users\ekram\Desktop\Spec4-0006-output.txt"
+#filePath = "C:\Users\ekram\Desktop\Spec4-0110-output.txt"
+filePath = "C:\Users\ekram\Desktop\Spec4-0215-output.txt"
 
-def WLCmodel(x,T,P,L):
-	k_b = 1.380*10**(-23) # J/K
-	return (k_b*T)*(0.25*(1-x/L)**(-2)-0.25+x/L)/P
+## generate and break-up data
 
-# Import Data
-# Row 0 - x-axis data in meters, then convert to nm
-# Row 1+ - alternating approach/retract curves, in nm
-data = np.genfromtxt("C:\Users\Ed\Documents\GitHub\P_Force_Curve\data0417.txt", \
-                     skip_header = 20)
-data_t = np.transpose(data)
-data_t[0] = 10**9 * data_t[0]
+dataFile = np.genfromtxt(filePath, skip_header=1)
 
-numCurves = (data_t.shape[0]-1)/2
+timeCh1 = dataFile[:,0]                 # s
+distance = dataFile[:,1]                # V
+timeDefl = dataFile[:,2]                # s
+deflection = dataFile[:,3]*1000000000   # nm
 
-maxPos = data_t[4].argmax()
-minPos = data_t[4].argmin()
+## Stiffness
 
-# 0.059 is slope of contact curve, need to add code to find that first.
-data_t[4] = data_t[4]/0.059
+k_L = 0.07896 #N/m
 
-#Finding & fitting the baseline
-popt, pcov = curve_fit(linearF, data_t[0][0:(minPos-1000)], data_t[4][0:(minPos-1000)])
+## Find boundaries of setup, approach, retract regions
+## using z-piezo position
 
-# Plot curve, y_l showing deflection and y_r showing force
-fig = plt.figure()
-ax1 = fig.add_subplot(111)
-ax1.set_xlabel('Distance (nm)')
-ax1.set_ylabel('Deflection (nm)')
-ax1.plot(data_t[0], data_t[4]-popt[1], 'r')
-y1, y2 = ax1.get_ylim()
+numPoints = len(distance)
 
-ax2 = ax1.twinx()
-ax2.set_ylabel('Force (nN)')
-ax2.set_ylim(y1*0.035, y2*0.035)
+points = 500
 
+x_points = np.zeros(points)
+y_points = np.zeros(points)
+int_points = np.zeros(points)
+bound_pts = np.zeros((5,2))
+Vbounds = np.zeros((5,3))
+
+for x in range(points):
+    low = x*numPoints/points
+    high = low + numPoints/points
+    if high > numPoints:
+        high = numPoints
+    slope, intercept, r_value, p_value, std_err = stats.linregress(
+        timeCh1[low:high], distance[low:high])
+    x_points[x] = np.mean(timeCh1[low:high])
+    y_points[x] = slope
+    int_points[x] = int(slope)
+
+slopeSwitch = True
+bndCnt = 0
+for x in range(len(int_points)):
+    if slopeSwitch:
+        if abs(int_points[x]) < 1:
+            bound_pts[bndCnt,0] = x_points[x]
+            bound_pts[bndCnt,1] = int_points[x]
+            slopeSwitch = False
+            bndCnt = bndCnt + 1
+    else:
+        if abs(int_points[x]) > 0:
+            bound_pts[bndCnt,0] = x_points[x-1]
+            bound_pts[bndCnt,1] = int_points[x-1]
+            slopeSwitch = True
+            bndCnt = bndCnt + 1
+    if bndCnt > 4:
+        break
+print "bound_pts = "
+print bound_pts
+
+if 0 in bound_pts[:,0]:
+    #round_pts = np.zeros(points)
+    for x in range(len(y_points)):
+        int_points[x] = round(y_points[x],1)
+        slopeSwitch = True
+        bndCnt = 0
+        for x in range(len(int_points)):
+            if slopeSwitch:
+                if abs(int_points[x]) < 0.2:
+                    bound_pts[bndCnt,0] = x_points[x]
+                    bound_pts[bndCnt,1] = int_points[x]
+                    slopeSwitch = False
+                    bndCnt = bndCnt + 1
+            else:
+                if abs(int_points[x]) > 0.2:
+                    bound_pts[bndCnt,0] = x_points[x-1]
+                    bound_pts[bndCnt,1] = int_points[x-1]
+                    slopeSwitch = True
+                    bndCnt = bndCnt + 1
+            if bndCnt > 4:
+                break
+
+bndCnt = 0
+for x in range(len(timeCh1)):
+    if timeCh1[x] > bound_pts[bndCnt,0]:
+        Vbounds[bndCnt,0] = timeCh1[x-1]
+        Vbounds[bndCnt,1] = distance[x-1]
+        Vbounds[bndCnt,2] = x
+        bndCnt=bndCnt+1
+    if bndCnt > 4:
+        break
+
+## Rescaled vectors to simplify following functions
+
+approachT = timeCh1[Vbounds[1,2]:Vbounds[2,2]]
+approachZ = distance[Vbounds[1,2]:Vbounds[2,2]]
+approachD = deflection[Vbounds[1,2]:Vbounds[2,2]]
+retractT = timeCh1[Vbounds[3,2]:Vbounds[4,2]]
+retractZ = distance[Vbounds[3,2]:Vbounds[4,2]]
+retractD = deflection[Vbounds[3,2]:Vbounds[4,2]]
+
+plt.title("Z-position (V)")
+plt.plot(timeCh1, distance)
+plt.plot(Vbounds[:,0], Vbounds[:,1], 'ro')
+plt.xlabel("Time (s)")
+plt.ylabel("Z-Position (V)")
+
+##plt.figure()
+##plt.plot(x_points, round_pts)
+
+plt.figure()
+plt.plot(x_points, int_points)
+
+##plt.figure()
+##plt.title("Approach")
+##plt.plot(retractZ,retractZ)
+##plt.ylabel("Deflection (nm)")
+##plt.xlabel("Z-position (V)")
 plt.show()
 plt.close()
+
+## Derivative of Approach curve, with rescaled Z-position
+
+numPoints1 = len(approachZ)
+points1 = 200
+x1_points = np.zeros(points1)
+y1_points = np.zeros(points1)
+int_points1 = np.zeros(points1)
+Abound_pts = np.zeros((4,3))
+for x1 in range(points1):
+    low = x1*numPoints1/points1
+    high = low + numPoints1/points1
+    if high > numPoints1:
+        high = numPoints1
+    s1, i1, r1, p1, e1 = stats.linregress(
+        4.77*13*approachZ[low:high], approachD[low:high])
+    x1_points[x1] = 4.77*13*np.mean(approachZ[low:high])
+    y1_points[x1] = s1
+    int_points1[x1] = round(s1)
+# Find contact point, +scanning
+Abound_pts[3,0] = len(int_points1)-1
+for x in range(len(int_points1)):
+    pos = x+4
+    if int_points1[pos] < int_points1[pos+1]:
+        Abound_pts[1,0] = pos
+        break
+# Find contact point, -scanning
+if int_points1[len(int_points1)-4] == 0:
+    switch = True
+else:
+    switch = False
+
+for x in range(len(int_points1)-5,-1,-1):
+    if switch:
+        if int_points1[x] < int_points1[x-1]:
+            Abound_pts[3,0] = x-1
+            switch = False
+    else:
+        if int_points1[x] < 1:
+            Abound_pts[2,0] = x+1
+            break
+
+for x in range(len(Abound_pts)):
+    Abound_pts[x,1] = x1_points[Abound_pts[x,0]]
+    Abound_pts[x,2] = int_points1[Abound_pts[x,0]]
+
+## Derivative of Retract curve, with rescaled Z-position
+numPoints2 = len(retractZ)
+points2 = 200
+x2_points = np.zeros(points2)
+y2_points = np.zeros(points2)
+int_points2 = np.zeros(points2)
+Rbound_pts = np.zeros((4,3))
+for x2 in range(points2):
+    low = x2*numPoints2/points2
+    high = low + numPoints2/points2
+    if high > numPoints2:
+        high = numPoints2
+    s2, i2, r2, p2, e2 = stats.linregress(
+        4.77*13*retractZ[low:high], retractD[low:high])
+    x2_points[x2] = 4.77*13*np.mean(retractZ[low:high])
+    y2_points[x2] = s2
+    int_points2[x2] = round(s2)
+# Find contact point, +scanning
+Rbound_pts[0,0] = len(int_points2)-1
+Rbound_pts[3,0] = 0
+if int(np.average(int_points2[:4])) < 1:
+    switch = True
+else:
+    switch = False
+
+for x in range(len(int_points2)):
+    pos = x+4
+    if pos > len(int_points2)-3:
+            break
+    if switch:
+        if (int_points2[pos] < int_points2[pos+1]) and (int_points2[pos] < int_points2[pos+2]):
+            Rbound_pts[3,0] = pos+1
+            switch = False
+    else:
+        if int_points2[pos] < 1:
+            Rbound_pts[2,0] = pos-1
+            break
+# Find contact point, -scanning
+for x in range(len(int_points2)-4,-1,-1):
+    if (int_points2[x] < int_points2[x-1]): #and (int_points2[x-1] > 0)
+        Rbound_pts[1,0] = x
+        break
+
+for x in range(len(Rbound_pts)):
+    Rbound_pts[x,1] = x2_points[Rbound_pts[x,0]]
+    Rbound_pts[x,2] = int_points2[Rbound_pts[x,0]]
+
+print Rbound_pts
+
+Rbounds = np.zeros((4,3))
+rBndCnt = 0
+for x in range(len(retractZ)-1,-1,-1):
+    if 4.77*13*retractZ[x-1] > Rbound_pts[rBndCnt,1]:
+        Rbounds[rBndCnt,0] = x
+        Rbounds[rBndCnt,1] = 4.77*13*retractZ[x]
+        Rbounds[rBndCnt,2] = retractD[x]
+        rBndCnt = rBndCnt + 1
+    if rBndCnt > 3:
+        break
+
+print Rbounds
+
+# Find baseline & contact region linear regression
+baselineS, baselineI, baselineR, baselineP, baselineE = stats.linregress(
+        4.77*13*retractZ[Rbounds[1,0]:Rbounds[0,0]], retractD[Rbounds[1,0]:Rbounds[0,0]])
+contactS, contactI, contactR, contactP, contactE = stats.linregress(
+        4.77*13*retractZ[Rbounds[3,0]:Rbounds[2,0]], retractD[Rbounds[3,0]:Rbounds[2,0]])
+
+x_shift = (baselineI - contactI)/(contactS - baselineS)
+y_shift = contactS * x_shift + contactI
+
+## Linear Regression on approach/retract regions
+## __1 = slope ; __2 = intercept ; __3 = r_value ; __4 = p_value ; __5 = std_error
+##
+## Setup Speed
+setup1,setup2,setup3,setup4,setup5 = stats.linregress(
+    timeCh1[0:Vbounds[0,2]], distance[0:Vbounds[0,2]])
+print "setup v =", abs(setup1*13*4.77), "nm/s"
+
+## Approach Speed
+appr1,appr2,appr3,appr4,appr5 = stats.linregress(
+    approachT, approachZ)
+print "approch v =", abs(appr1*13*4.77), "nm/s"
+
+## Retract Speed
+retr1,retr2,retr3,retr4,retr5 = stats.linregress(
+    retractT, retractZ)
+print "retract v =", abs(retr1*13*4.77), "nm/s"
+
+## Figures
+
+plt.figure(figsize=(20,10))
+plt.subplot(2,3,2)
+plt.title("Approach Slope")
+plt.plot(x1_points, y1_points, 'b.')
+plt.plot(x1_points, int_points1, 'r.')
+plt.plot(Abound_pts[:,1],Abound_pts[:,2], 'go')
+plt.ylabel("Defl. Deriv")
+plt.xlabel("Z-Position (nm)")
+
+plt.subplot(2,3,3)
+plt.title("Retract Slope")
+plt.plot(x2_points, y2_points, 'b.')
+plt.plot(x2_points, int_points2, 'r.')
+plt.plot(Rbound_pts[:,1],Rbound_pts[:,2], 'go')
+plt.ylabel("Defl. Deriv")
+plt.xlabel("Z-Position (nm)")
+
+plt.subplot(2,3,1)
+plt.title("Z-position (V)")
+plt.plot(timeCh1, distance)
+plt.plot(Vbounds[:,0], Vbounds[:,1], 'ro')
+plt.xlabel("Time (s)")
+plt.ylabel("Z-Position (V)")
+
+plt.subplot(2,3,6)
+plt.title("Retract")
+plt.plot(4.77*13*retractZ,retractD)
+plt.plot(4.77*13*retractZ - x_shift,retractD - y_shift)
+plt.plot(0, 0, 'ro')
+plt.plot(Rbounds[:,1], Rbounds[:,2], 'ro')
+plt.ylabel("Deflection (nm)")
+plt.xlabel("Z-position (V)")
+
+plt.subplot(2,3,5)
+plt.title("Approach")
+plt.plot(approachZ,approachD)
+plt.ylabel("Deflection (nm)")
+plt.xlabel("Z-position (V)")
+
+plt.subplot(2,3,4)
+plt.title("Setup")
+plt.plot(distance[0:Vbounds[0,2]], deflection[0:Vbounds[0,2]])
+plt.ylabel("Deflection (nm)")
+plt.xlabel("Z-position (V)")
+
+plt.show()
+#plt.savefig("img1")
+plt.close()
+
