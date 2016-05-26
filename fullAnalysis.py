@@ -98,7 +98,7 @@ for x1 in range(len(dataFiles)):
 
     ## Stiffness
 
-    k_L = 0.07896 #N/m
+    k_L = 0.034 #N/m
 
     ## Find boundaries of setup, approach, retract regions
     ## using z-piezo position
@@ -383,7 +383,8 @@ for x1 in range(len(dataFiles)):
     plt.plot(0, 0, 'ro')
     plt.plot(Rbounds[:,1], Rbounds[:,2], 'ro')
     plt.ylabel("Deflection (nm)")
-    plt.xlabel("Z-position (V)")
+    plt.xlabel("Z-position (V)") 
+    plt.axis([-100,100,-50,50])
 
     plt.subplot(2,3,5)
     plt.title("Approach")
@@ -392,10 +393,13 @@ for x1 in range(len(dataFiles)):
     plt.xlabel("Z-position (V)")
 
     plt.subplot(2,3,4)
-    plt.title("Setup")
-    plt.plot(distance[0:Vbounds[0,2]], deflection[0:Vbounds[0,2]])
+    plt.title("Full Retract")
+    plt.plot(4.77*13*retractZ,retractD)
+    plt.plot(4.77*13*retractZ - x_shift,retractD - y_shift)
+    plt.plot(0, 0, 'ro')
+    plt.plot(Rbounds[:,1], Rbounds[:,2], 'ro')
     plt.ylabel("Deflection (nm)")
-    plt.xlabel("Z-position (V)")
+    plt.xlabel("Z-position (V)") 
 
     plt.savefig(path.join(dstDir,currentpic))
     plt.close()

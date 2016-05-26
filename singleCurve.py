@@ -4,7 +4,7 @@ from scipy import stats
 
 #filePath = "C:\Users\ekram\Desktop\Spec4-0006-output.txt"
 #filePath = "C:\Users\ekram\Desktop\Spec4-0110-output.txt"
-filePath = "C:\Users\ekram\Desktop\Spec4-0215-output.txt"
+filePath = "C:\Users\ekram\Desktop\testFolder\Spec4-0215-output.txt"
 
 ## generate and break-up data
 
