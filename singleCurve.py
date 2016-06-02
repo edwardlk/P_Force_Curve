@@ -8,7 +8,7 @@ from scipy.optimize import curve_fit
 
 #filePath = "C:\Users\ekram\Desktop\Spec4-0006-output.txt"
 #filePath = "C:\Users\ekram\Desktop\Spec4-0110-output.txt"
-filePath = "C:\Users\ekram\Desktop\testFolder\Spec4-0215-output.txt"
+filePath = R"C:\Users\ekram\Desktop\testFolder\Spec4-0474-output.txt"
 
 ## generate and break-up data
 
@@ -69,24 +69,24 @@ print bound_pts
 
 if 0 in bound_pts[:,0]:
 	for x in range(len(y_points)):
-        int_points[x] = round(y_points[x],1)
+		int_points[x] = round(y_points[x],1)
 	slopeSwitch = True
-    bndCnt = 0
-    for x in range(len(int_points)):
+	bndCnt = 0
+	for x in range(len(int_points)):
 		if slopeSwitch:
 			if abs(int_points[x]) < 0.2:
 				bound_pts[bndCnt,0] = x_points[x]
 				bound_pts[bndCnt,1] = int_points[x]
 				slopeSwitch = False
 				bndCnt = bndCnt + 1
-            else:
-				if abs(int_points[x]) > 0.2:
-					bound_pts[bndCnt,0] = x_points[x-1]
-					bound_pts[bndCnt,1] = int_points[x-1]
-					slopeSwitch = True
-					bndCnt = bndCnt + 1
-			if bndCnt > 4:
-				break
+		else:
+			if abs(int_points[x]) > 0.2:
+				bound_pts[bndCnt,0] = x_points[x-1]
+				bound_pts[bndCnt,1] = int_points[x-1]
+				slopeSwitch = True
+				bndCnt = bndCnt + 1
+		if bndCnt > 4:
+			break
 
 bndCnt = 0
 for x in range(len(timeCh1)):
