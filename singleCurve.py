@@ -1,6 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import Tkinter, tkFileDialog
+from os import *
 from scipy import stats
+from scipy.optimize import curve_fit
 
 #filePath = "C:\Users\ekram\Desktop\Spec4-0006-output.txt"
 #filePath = "C:\Users\ekram\Desktop\Spec4-0110-output.txt"
@@ -47,7 +51,7 @@ slopeSwitch = True
 bndCnt = 0
 for x in range(len(int_points)):
     if slopeSwitch:
-        if abs(int_points[x]) < 1:
+        if abs(int_points[x]) == 0:
             bound_pts[bndCnt,0] = x_points[x]
             bound_pts[bndCnt,1] = int_points[x]
             slopeSwitch = False
@@ -64,26 +68,25 @@ print "bound_pts = "
 print bound_pts
 
 if 0 in bound_pts[:,0]:
-    #round_pts = np.zeros(points)
-    for x in range(len(y_points)):
+	for x in range(len(y_points)):
         int_points[x] = round(y_points[x],1)
-        slopeSwitch = True
-        bndCnt = 0
-        for x in range(len(int_points)):
-            if slopeSwitch:
-                if abs(int_points[x]) < 0.2:
-                    bound_pts[bndCnt,0] = x_points[x]
-                    bound_pts[bndCnt,1] = int_points[x]
-                    slopeSwitch = False
-                    bndCnt = bndCnt + 1
+	slopeSwitch = True
+    bndCnt = 0
+    for x in range(len(int_points)):
+		if slopeSwitch:
+			if abs(int_points[x]) < 0.2:
+				bound_pts[bndCnt,0] = x_points[x]
+				bound_pts[bndCnt,1] = int_points[x]
+				slopeSwitch = False
+				bndCnt = bndCnt + 1
             else:
-                if abs(int_points[x]) > 0.2:
-                    bound_pts[bndCnt,0] = x_points[x-1]
-                    bound_pts[bndCnt,1] = int_points[x-1]
-                    slopeSwitch = True
-                    bndCnt = bndCnt + 1
-            if bndCnt > 4:
-                break
+				if abs(int_points[x]) > 0.2:
+					bound_pts[bndCnt,0] = x_points[x-1]
+					bound_pts[bndCnt,1] = int_points[x-1]
+					slopeSwitch = True
+					bndCnt = bndCnt + 1
+			if bndCnt > 4:
+				break
 
 bndCnt = 0
 for x in range(len(timeCh1)):
@@ -96,7 +99,6 @@ for x in range(len(timeCh1)):
         break
 
 ## Rescaled vectors to simplify following functions
-
 approachT = timeCh1[Vbounds[1,2]:Vbounds[2,2]]
 approachZ = distance[Vbounds[1,2]:Vbounds[2,2]]
 approachD = deflection[Vbounds[1,2]:Vbounds[2,2]]
@@ -104,28 +106,7 @@ retractT = timeCh1[Vbounds[3,2]:Vbounds[4,2]]
 retractZ = distance[Vbounds[3,2]:Vbounds[4,2]]
 retractD = deflection[Vbounds[3,2]:Vbounds[4,2]]
 
-plt.title("Z-position (V)")
-plt.plot(timeCh1, distance)
-plt.plot(Vbounds[:,0], Vbounds[:,1], 'ro')
-plt.xlabel("Time (s)")
-plt.ylabel("Z-Position (V)")
-
-##plt.figure()
-##plt.plot(x_points, round_pts)
-
-plt.figure()
-plt.plot(x_points, int_points)
-
-##plt.figure()
-##plt.title("Approach")
-##plt.plot(retractZ,retractZ)
-##plt.ylabel("Deflection (nm)")
-##plt.xlabel("Z-position (V)")
-plt.show()
-plt.close()
-
 ## Derivative of Approach curve, with rescaled Z-position
-
 numPoints1 = len(approachZ)
 points1 = 200
 x1_points = np.zeros(points1)
@@ -142,13 +123,17 @@ for x1 in range(points1):
     x1_points[x1] = 4.77*13*np.mean(approachZ[low:high])
     y1_points[x1] = s1
     int_points1[x1] = round(s1)
+
 # Find contact point, +scanning
 Abound_pts[3,0] = len(int_points1)-1
 for x in range(len(int_points1)):
-    pos = x+4
-    if int_points1[pos] < int_points1[pos+1]:
-        Abound_pts[1,0] = pos
-        break
+	pos = x+4
+	if pos > len(int_points1)-2:
+		break
+	if int_points1[pos] < int_points1[pos+1]:
+		Abound_pts[1,0] = pos
+		break
+
 # Find contact point, -scanning
 if int_points1[len(int_points1)-4] == 0:
     switch = True
@@ -156,14 +141,14 @@ else:
     switch = False
 
 for x in range(len(int_points1)-5,-1,-1):
-    if switch:
-        if int_points1[x] < int_points1[x-1]:
-            Abound_pts[3,0] = x-1
-            switch = False
-    else:
-        if int_points1[x] < 1:
-            Abound_pts[2,0] = x+1
-            break
+	if switch:
+		if int_points1[x] < int_points1[x-1]:
+			Abound_pts[3,0] = x-1
+			switch = False
+	else:
+		if int_points1[x] < 1:
+			Abound_pts[2,0] = x+1
+			break
 
 for x in range(len(Abound_pts)):
     Abound_pts[x,1] = x1_points[Abound_pts[x,0]]
@@ -186,6 +171,7 @@ for x2 in range(points2):
     x2_points[x2] = 4.77*13*np.mean(retractZ[low:high])
     y2_points[x2] = s2
     int_points2[x2] = round(s2)
+
 # Find contact point, +scanning
 Rbound_pts[0,0] = len(int_points2)-1
 Rbound_pts[3,0] = 0
@@ -206,6 +192,7 @@ for x in range(len(int_points2)):
         if int_points2[pos] < 1:
             Rbound_pts[2,0] = pos-1
             break
+
 # Find contact point, -scanning
 for x in range(len(int_points2)-4,-1,-1):
     if (int_points2[x] < int_points2[x-1]): #and (int_points2[x-1] > 0)
@@ -215,8 +202,6 @@ for x in range(len(int_points2)-4,-1,-1):
 for x in range(len(Rbound_pts)):
     Rbound_pts[x,1] = x2_points[Rbound_pts[x,0]]
     Rbound_pts[x,2] = int_points2[Rbound_pts[x,0]]
-
-print Rbound_pts
 
 Rbounds = np.zeros((4,3))
 rBndCnt = 0
@@ -228,8 +213,6 @@ for x in range(len(retractZ)-1,-1,-1):
         rBndCnt = rBndCnt + 1
     if rBndCnt > 3:
         break
-
-print Rbounds
 
 # Find baseline & contact region linear regression
 baselineS, baselineI, baselineR, baselineP, baselineE = stats.linregress(
@@ -291,7 +274,8 @@ plt.plot(4.77*13*retractZ - x_shift,retractD - y_shift)
 plt.plot(0, 0, 'ro')
 plt.plot(Rbounds[:,1], Rbounds[:,2], 'ro')
 plt.ylabel("Deflection (nm)")
-plt.xlabel("Z-position (V)")
+plt.xlabel("Z-position (V)") 
+plt.axis([-100,100,-50,50])
 
 plt.subplot(2,3,5)
 plt.title("Approach")
@@ -300,12 +284,14 @@ plt.ylabel("Deflection (nm)")
 plt.xlabel("Z-position (V)")
 
 plt.subplot(2,3,4)
-plt.title("Setup")
-plt.plot(distance[0:Vbounds[0,2]], deflection[0:Vbounds[0,2]])
+plt.title("Full Retract")
+plt.plot(4.77*13*retractZ,retractD)
+plt.plot(4.77*13*retractZ - x_shift,retractD - y_shift)
+plt.plot(0, 0, 'ro')
+plt.plot(Rbounds[:,1], Rbounds[:,2], 'ro')
 plt.ylabel("Deflection (nm)")
-plt.xlabel("Z-position (V)")
+plt.xlabel("Z-position (V)") 
 
 plt.show()
-#plt.savefig("img1")
 plt.close()
 
