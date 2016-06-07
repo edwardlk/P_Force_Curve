@@ -80,7 +80,7 @@ dataImg = outputFiles(dataFiles, '.png')
 csvOutput = outputFiles(dataFiles, '.csv')
 
 ##Pandas DataFrame to store measurements
-df = pd.DataFrame(columns=['file','rupture force','location', 'WLC-P', 'WLC-L0'])
+df = pd.DataFrame(columns=['file','rupture force','location', 'speed (nm/s', 'WLC-P', 'WLC-L0'])
 dfrow = 0
 
 for x1 in range(len(dataFiles)):
@@ -336,7 +336,7 @@ for x1 in range(len(dataFiles)):
     WLC_L0 = 2.0
     
     #Add data to pandas DataFrame
-    df.loc[dfrow] = [currentfile, ruptureF, ruptureL, WLC_P, WLC_L0]
+    df.loc[dfrow] = [currentfile, ruptureF, ruptureL, abs(retr1*13.0*4.77), WLC_P, WLC_L0]
     dfrow = dfrow + 1
 
     #Output Calculations
