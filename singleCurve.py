@@ -23,9 +23,9 @@ def multiLinReg(x_data,y_data):
 	maxPos = np.argmax(init_points[90:1900,3]) + 90
 	
 	plt.figure()
-	#plt.plot(init_points[:,1])
-	#plt.plot(init_points[:,2])
-	plt.plot(init_points[:,3], 'r.')
+	plt.plot(init_points[:,1], 'r.')
+	plt.plot(init_points[:,2], 'b.')
+	plt.plot(init_points[:,3], 'y.')
 	plt.show()
 	
 	return maxPos
@@ -33,6 +33,7 @@ def multiLinReg(x_data,y_data):
 #filePath = "C:\Users\ekram\Desktop\Spec4-0006-output.txt"
 #filePath = "C:\Users\ekram\Desktop\Spec4-0110-output.txt"
 filePath = R"C:\Users\ekram\Desktop\testFolder\Spec4-0474-output.txt"
+filePath = R"C:\Users\ekram\Desktop\Spec4-1179-output.txt"
 
 ## generate and break-up data
 
