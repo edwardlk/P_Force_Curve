@@ -9,25 +9,26 @@ from scipy.optimize import curve_fit
 def multiLinReg(x_data,y_data):
 	print "Running MLR"
 	print len(x_data)
-	midlen = len(x_data)/20000
-	init_points = np.zeros((19999,4))
-	for x in range(19999):
+	midlen = len(x_data)/2000
+	init_points = np.zeros((1999,4))
+	for x in range(1999):
 		init_points[x,0] = (x + 1) * midlen
-	for x in range(19999):
+	for x in range(1999):
 		s1, i1, r1, p1, se1 = stats.linregress(x_data[:init_points[x,0]], y_data[:init_points[x,0]])
 		s2, i2, r2, p2, se2 = stats.linregress(x_data[init_points[x,0]:], y_data[init_points[x,0]:])
 		init_points[x,1] = r1**2
 		init_points[x,2] = r2**2
 		init_points[x,3] = (r1**2 + r2**2)
 		print x, "completed"
-	maxPos = np.argmax(init_points[900:19000,3])
-	if init_points[maxPos-1,3] > init_points[maxPos+1,3]:
-		bound = maxPos-1
-	else:
-		bound = maxPos+1
+	maxPos = np.argmax(init_points[90:1900,3]) + 90
+	
 	plt.figure()
-	plt.plot(init_points[:,3])
+	#plt.plot(init_points[:,1])
+	#plt.plot(init_points[:,2])
+	plt.plot(init_points[:,3], 'r.')
 	plt.show()
+	
+	return maxPos
 
 #filePath = "C:\Users\ekram\Desktop\Spec4-0006-output.txt"
 #filePath = "C:\Users\ekram\Desktop\Spec4-0110-output.txt"
