@@ -97,7 +97,6 @@ for x1 in range(len(dataFiles)):
 
     ## Stiffness
 
-    k_L = 0.034 #N/m
 
     ## Find boundaries of setup, approach, retract regions
     ## using z-piezo position
