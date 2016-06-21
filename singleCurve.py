@@ -7,33 +7,61 @@ from scipy import stats
 from scipy.optimize import curve_fit
 
 def multiLinReg(x_data,y_data):
-	print "Running MLR"
-	print len(x_data)
+	""" Inputs are ndarrays, x_data should be in nm's
+	returns contact slope, contact intercept, baseline slopw, baseline intercept"""
+	# print "Running MLR"
+	sepX = 1
+	deltaX = 0.0
+	while deltaX < 50:
+		deltaX = abs(x_data[0] - x_data[sepX])
+		sepX += 1
 	midlen = len(x_data)/2000
-	init_points = np.zeros((1999,4))
+	init_points = np.zeros((1999,6))
 	for x in range(1999):
-		init_points[x,0] = (x + 1) * midlen
+			init_points[x,0] = (x + 1) * midlen
 	for x in range(1999):
-		s1, i1, r1, p1, se1 = stats.linregress(x_data[:init_points[x,0]], y_data[:init_points[x,0]])
-		s2, i2, r2, p2, se2 = stats.linregress(x_data[init_points[x,0]:], y_data[init_points[x,0]:])
-		init_points[x,1] = r1**2
-		init_points[x,2] = r2**2
-		init_points[x,3] = (r1**2 + r2**2)
-		print x, "completed"
-	maxPos = np.argmax(init_points[90:1900,3]) + 90
+			s1, i1, r1, p1, se1 = stats.linregress(x_data[:init_points[x,0]], y_data[:init_points[x,0]])
+			s2, i2, r2, p2, se2 = stats.linregress(x_data[init_points[x,0]:], y_data[init_points[x,0]:])
+			init_points[x,1] = r1**2
+			init_points[x,2] = r2**2
+			init_points[x,3] = (r1**2 + r2**2)
+			init_points[x,4] = s1
+			init_points[x,5] = s2
+			if x%15 == 0:
+					print x, "completed"
+	maxPos = np.argmax((init_points[:,4] - init_points[:,5]))
 	
+	## New fit curves, 1 for contact curve, 2 for baseline
+	s1, i1, r1, p1, se1 = stats.linregress(x_data[:(init_points[maxPos,0] - sepX/5)],
+										   y_data[:(init_points[maxPos,0] - sepX/5)])
+	s2, i2, r2, p2, se2 = stats.linregress(x_data[(init_points[maxPos,0] + sepX):],
+										   y_data[(init_points[maxPos,0] + sepX):])
+
+	## Plots for testing
 	plt.figure()
+	plt.subplot(131)
 	plt.plot(init_points[:,1], 'r.')
 	plt.plot(init_points[:,2], 'b.')
 	plt.plot(init_points[:,3], 'y.')
+
+	plt.subplot(132)
+	plt.plot(init_points[:,4], 'r.')
+	plt.plot(init_points[:,5], 'b.')
+	plt.plot(init_points[:,4] - init_points[:,5], 'b.')
+
+	plt.subplot (133)
+	plt.plot(x_data,y_data)
+	plt.plot(x_data,s1*x_data + i1)
+	plt.plot(x_data,s2*x_data + i2)
+	plt.plot(x_data[init_points[maxPos,0]], y_data[init_points[maxPos,0]], 'ro')
 	plt.show()
-	
-	return maxPos
+
+	return s1, i1, s2, i2
 
 #filePath = "C:\Users\ekram\Desktop\Spec4-0006-output.txt"
 #filePath = "C:\Users\ekram\Desktop\Spec4-0110-output.txt"
-filePath = R"C:\Users\ekram\Desktop\testFolder\Spec4-0474-output.txt"
-filePath = R"C:\Users\ekram\Desktop\Spec4-1179-output.txt"
+#filePath = R"C:\Users\ekram\Desktop\testFolder\Spec4-0474-output.txt"
+filePath = R"C:\Users\ekram\Desktop\testFolder\Spec4-1179-output.txt"
 
 ## generate and break-up data
 
@@ -133,7 +161,7 @@ retractZ = 4.77*13*distance[Vbounds[3,2]:Vbounds[4,2]]
 retractD = deflection[Vbounds[3,2]:Vbounds[4,2]]
 retractF = k_L * retractD
 
-multiLinReg(retractZ,retractF)
+multiLinReg(retractZ,retractD)
 
 ## Derivative of Approach curve, with rescaled Z-position
 numPoints1 = len(approachZ)
@@ -321,6 +349,6 @@ plt.plot(Rbounds[:,1], Rbounds[:,2], 'ro')
 plt.ylabel("Deflection (nm)")
 plt.xlabel("Z-position (V)") 
 
-plt.show()
-plt.close()
+##plt.show()
+##plt.close()
 
