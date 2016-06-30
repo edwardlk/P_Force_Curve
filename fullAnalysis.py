@@ -1,17 +1,15 @@
+import sys
 import time
+import Tkinter, tkFileDialog
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import Tkinter, tkFileDialog
+import multiLinReg as MLR
 from os import *
 from scipy import stats
 from scipy.optimize import curve_fit
-
-def WLCmodel(x, x_off, P, L0):
-    kbT = 300.0*1.380*10**(-23)
-    A = 1/(4*(1-(x-x_off)/L0)**2)
-    B = (x - x_off)/L0
-    return kbT*(A - 0.25 + B)/P
+from lmfit import Model
+from polymerModels import WLCmodel, FJCmodel
 
 def outputFiles(dataFiles, addon):
     L = []
