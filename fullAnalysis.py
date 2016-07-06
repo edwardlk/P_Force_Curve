@@ -335,7 +335,7 @@ for x1 in range(len(dataFiles)):
 		plt.subplot(2,3,5)
 		plt.title("Fit")
 		plt.plot(separation[originPt:ruptureI], smooth25[originPt:ruptureI], 'b.')
-		plt.plot(separation[originPt:ruptureI], result.init_fit, 'k--')
+		#plt.plot(separation[originPt:ruptureI], result.init_fit, 'k--')
 		plt.plot(separation[originPt:ruptureI], result.best_fit, 'r-')
 		plt.ylabel("Force (nN)")
 		plt.xlabel("Separation (nm)")
