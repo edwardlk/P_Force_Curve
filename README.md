@@ -38,4 +38,43 @@ script, when the dialog box opens select the folder that contains your data
 files and then wait until it finishes. The converted files will be in a new
 folder called 'output' that was created within the folder that you selected.
 
-**TO DO:** Convert to python3
+*TO DO:*
+- Convert to python3
+
+### fullAnalysis.py
+Used to do a batch analysis of protein force curves captured in Time Spec mode.
+Assumes data files have a format similar to the **Spec4-001-output.txt**
+example given above, with one curve in each file.
+
+A rough outline of the analysis it performs:
+1. Uses Z-piezo position to discard liftoff & hold data, keeping only approach
+& retract data.
+2. Fits the contact & far-from-surface portions of the retract data to find the
+surface location and remove any y-offset.
+3. Calculates retract speed.
+4. Smooth's the force curves with various wind sizes
+5. Finds the rupture force & location, then tries to fit the data leading up to
+the rupture using the worm-like chain (WLC) model.
+6. Saves all the rupture data & WLC parameters to a separate dataframe
+7. Creates 2 output files, one containing rescaled retract curve data, the other
+with only the data that it trird to fit to the WLC model.
+8. Prints various figure demonstrating how the data was transformed & fit, to
+making it easier to find the files that the program failed to properly analyze.
+
+*TO DO:*
+- Convert to python3
+- ask for cantilever stiffness
+- allow switching b/w Time Spec & regular Spec files
+- multiple Time Spec curves in a single file.
+- make step 1 more robust for handling different Time Spec setups (e.g. w/ & w/o
+  hold on surface)
+
+### singleCurve.py
+Testing script for what was eventually added to the fullAnalysis script. Kept
+for reference.
+
+### multiLinReg.py & polymerModels.py
+Called in the analysis scripts. multiLinReg for finding the x- and y-offsets of
+a retract curve. polymerModels has the WLC fit function.
+
+*updated 7/20/18*
