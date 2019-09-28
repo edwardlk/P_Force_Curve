@@ -1,5 +1,5 @@
 from os import path, listdir, makedirs
-import Tkinter, tkFileDialog
+from tkinter import Tk, filedialog
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -12,13 +12,13 @@ def outputFiles(dataFiles, addon):
 
 ## Designate input and output directories.
 
-root = Tkinter.Tk()
+root = Tk()
 root.withdraw()
 
 info = 'Please select the folder that contains \
-the data files you wish to analyze.'
+the data files you wish to reformat.'
 
-srcDir = tkFileDialog.askdirectory(parent=root, initialdir="/", title=info)
+srcDir = filedialog.askdirectory(parent=root, initialdir="/", title=info)
 dstDir = path.join(srcDir, 'output')
 csvDir = path.join(srcDir, 'csv')
 
@@ -27,8 +27,8 @@ csvDir = path.join(srcDir, 'csv')
 dataFiles = listdir(srcDir)
 dataFiles.sort()
 
-##Make output directory if it does not exist
-##if the directory does exist, deletes 'output' from dataFiles
+## Make output directory if it does not exist
+## if the directory does exist, deletes 'output' from dataFiles
 if not path.exists(dstDir):
     makedirs(dstDir)
 else:
@@ -53,8 +53,8 @@ for x in range(len(dataFiles)):
           pass
        totalLines = i + 1
 
-   foot1 = totalLines/2 - 3
-   head2 = totalLines/2 + 11
+   foot1 = int(totalLines/2) - 3
+   head2 = int(totalLines/2) + 11
 
    Ch1Table = np.genfromtxt(cFilePath, skip_header=11, skip_footer=foot1)
    DeflectTable = np.genfromtxt(cFilePath, skip_header=head2)
@@ -63,7 +63,7 @@ for x in range(len(dataFiles)):
 
    np.savetxt(path.join(dstDir,outputfile), combinedFile, header="x(s) y0(V) x(s) y1(m)", comments="")
 
-   print "Completed ", x+1, " of ", len(dataFiles), " files."
+   print("Completed ", x+1, " of ", len(dataFiles), " files.")
 
 ##fig = plt.figure()
 ##ax = fig.add_subplot(1, 1, 1)
@@ -83,7 +83,7 @@ for x in range(len(dataFiles)):
 ##        if i == line_number:
 ##            break
 ##        i += 1
-##    # line now holds the line 
+##    # line now holds the line
 ##    # (or is empty if the file is smaller than that number)
 ##    print line
 
