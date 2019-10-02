@@ -77,6 +77,19 @@ for x1 in range(len(dataFiles)):
     retractD = deflection[int(Vbounds[3, 2]):int(Vbounds[4, 2])]
     retractF = k_L * retractD
 
+    # Remove data if deflection out of range
+    maxDefl = max(retractD)
+    x = 0
+    while retractD[x] == maxDefl:
+        if x > len(retractD)-1:
+            break
+        x += 1
+    retractT = retractT[x:]
+    retractZ = retractZ[x:]
+    retractD = retractD[x:]
+    retractF = retractF[x:]
+
+    # Fit retract curve to get baseline and contact line
     try:
         contactS, contactI, baselineS, baselineI = MLR.multiLinReg(retractZ,
                                                                    retractD)
@@ -180,13 +193,13 @@ for x1 in range(len(dataFiles)):
     dfrow = dfrow + 1
 
     # Output Calculations
-    output = np.column_stack((retractZ - x_shift, separation,
+    output = np.column_stack((retractZ - x_shift, separation, retractD,
                               k_L*(retractD - y_shift)/contactS, smooth11,
                               smooth25, smooth55, smooth75))
     ruptureOut = np.column_stack((separation[originPt:ruptureI],
                                   smooth25[originPt:ruptureI]))
 
-    csvheader = ("z-position(nm),separation(nm),Force(nN),Force_11(nN),"
+    csvheader = ("z-position(nm),separation(nm),retractD,Force(nN),Force_11(nN),"
                  "Force_25(nN),Force_55(nN),Force_75(nN),v=%d nm/s"
                  % (abs(retr1)))
 
