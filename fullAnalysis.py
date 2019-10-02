@@ -10,7 +10,7 @@ from scipy import stats
 from scipy.optimize import curve_fit
 from lmfit import Model
 from polymerModels import WLCmodel, FJCmodel
-from PFCfuncs import outputFiles, smooth
+from PFCfuncs import outputFiles, smooth, returnBoundaries
 
 # Designate input and output directories.
 root = Tk()
@@ -57,88 +57,15 @@ for x1 in range(len(dataFiles)):
 
     dataFile = np.genfromtxt(path.join(srcDir, currentfile), skip_header=1)
 
-    timeCh1 = dataFile[:, 0]                 # s
-    distance = dataFile[:, 1]                # V
-    timeDefl = dataFile[:, 2]                # s
-    deflection = dataFile[:, 3]*1000000000   # nm
+    (timeCh1, distance, timeDefl, deflection) = dataFile.T
+    deflection = deflection*1000000000
 
     # Stiffness
-
     k_L = 0.034  # N/m
 
     # Find boundaries of setup, approach, retract regions
     # using z-piezo position
-
-    numPoints = len(distance)
-
-    points = 500
-
-    x_points = np.zeros(points)
-    y_points = np.zeros(points)
-    int_points = np.zeros(points)
-    bound_pts = np.zeros((5, 2))
-    Vbounds = np.zeros((5, 3))
-
-    for x in range(points):
-        low = int(x*numPoints/points)
-        high = low + int(numPoints/points)
-        if high > numPoints:
-            high = numPoints
-        slope, intercept, r_value, p_value, std_err = stats.linregress(
-            timeCh1[low:high], distance[low:high])
-        x_points[x] = np.mean(timeCh1[low:high])
-        y_points[x] = slope
-        int_points[x] = int(slope)
-
-    slopeSwitch = True
-    bndCnt = 0
-    for x in range(len(int_points)):
-        if slopeSwitch:
-            if int_points[x] == 0:
-                bound_pts[bndCnt, 0] = x_points[x]
-                bound_pts[bndCnt, 1] = int_points[x]
-                slopeSwitch = False
-                bndCnt = bndCnt + 1
-        else:
-            if abs(int_points[x]) > 0:
-                bound_pts[bndCnt, 0] = x_points[x-1]
-                bound_pts[bndCnt, 1] = int_points[x-1]
-                slopeSwitch = True
-                bndCnt = bndCnt + 1
-        if bndCnt > 4:
-            break
-
-    if 0 in bound_pts[:, 0]:
-        for x in range(len(y_points)):
-            int_points[x] = round(y_points[x], 1)
-        slopeSwitch = True
-        bndCnt = 0
-        for x in range(len(int_points)):
-            if slopeSwitch:
-                if abs(int_points[x]) < 0.2:
-                    bound_pts[bndCnt, 0] = x_points[x]
-                    bound_pts[bndCnt, 1] = int_points[x]
-                    slopeSwitch = False
-                    bndCnt = bndCnt + 1
-            else:
-                if abs(int_points[x]) > 0.2:
-                    bound_pts[bndCnt, 0] = x_points[x-1]
-                    bound_pts[bndCnt, 1] = int_points[x-1]
-                    slopeSwitch = True
-                    bndCnt = bndCnt + 1
-            if bndCnt > 4:
-                break
-
-    bndCnt = 0
-    for x in range(len(timeCh1)):
-        if timeCh1[x] > bound_pts[bndCnt, 0]:
-            Vbounds[bndCnt, 0] = timeCh1[x-1]
-            Vbounds[bndCnt, 1] = distance[x-1]
-            Vbounds[bndCnt, 2] = x
-            # bndSwitch = False
-            bndCnt = bndCnt+1
-        if bndCnt > 4:
-            break
+    Vbounds = returnBoundaries(timeCh1, distance, 500)
 
     # Rescaled vectors to simplify following functions
     approachT = timeCh1[int(Vbounds[1, 2]):int(Vbounds[2, 2])]
