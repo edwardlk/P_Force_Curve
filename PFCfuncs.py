@@ -366,6 +366,10 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     #     FJC_b = 0.0
 
     # Add data to pandas DataFrame
+    df = pd.read_pickle(path.join(csvDir, "dummy.pkl"))
+    df.loc[x1] = [currentfile, 1000.0*abs(ruptureF), ruptureL, abs(retr1),
+                  WLC_P, WLC_L0, x_off]
+    df.to_pickle(path.join(csvDir, "dummy.pkl"))
     # df = pd.read_excel(path.join(csvDir, 'dataframe.xlsx'))
     # df.append([currentfile, 1000.0*abs(ruptureF), ruptureL, abs(retr1),
     #            WLC_P, WLC_L0, x_off])

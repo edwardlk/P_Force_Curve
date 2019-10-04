@@ -48,9 +48,10 @@ def main():
     csvRupture = outputFiles(dataFiles, '-rupture.csv')
 
     # Pandas DataFrame to store measurements
-    df = pd.DataFrame(columns=['file', 'rupture force (pN)', 'location',
-                               'speed (nm/s)', 'WLC-P', 'WLC-L0', 'x_off'])
-    df.to_excel(path.join(csvDir, 'dataframe.xlsx'), sheet_name='Sheet1')
+    fillData = np.array([np.arange(len(dataFiles))]*7).T
+    df = pd.DataFrame(fillData, columns=['file', 'rupture force (pN)', 'location',
+                                         'speed (nm/s)', 'WLC-P', 'WLC-L0', 'x_off'])
+    df.to_pickle(path.join(csvDir, "dummy.pkl"))
 
     pool = mp.Pool(processes=5)
     for x1 in range(len(dataFiles)):
@@ -60,6 +61,8 @@ def main():
     pool.close()
     pool.join()
 
+    df = pd.read_pickle(path.join(csvDir, "dummy.pkl"))
+    df.to_excel(path.join(csvDir, 'dataframe.xlsx'), sheet_name='Sheet1')
     print("Finished analyzing", path.split(srcDir)[1])
     print('It took {:.2f} seconds to analyze %d files.'.format(time.time()-start)
           % (len(dataFiles)))
