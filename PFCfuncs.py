@@ -1,5 +1,6 @@
 import numpy as np
 from scipy import stats
+import matplotlib.pyplot as plt
 
 
 def outputFiles(dataFiles, addon):
@@ -140,3 +141,62 @@ def returnBoundaries(xdata, ydata, resolution):
             break
 
     return VboundsXY, VboundsI
+
+
+def plotEverything(skipPLT5, originPt, ruptureI, smooth25, separation,
+                   baselineS, baselineI, contactS, contactI, result,
+                   timeCh1, distance, retractZ, retractD, VboundsXY, VboundsI):
+
+    x_shift = (baselineI - contactI)/(contactS - baselineS)
+    y_shift = contactS * x_shift + contactI
+
+    plt.figure(figsize=(20, 10))
+    plt.subplot(2, 3, 1)
+    plt.title("Z-position (nm)")
+    plt.plot(timeCh1, distance)
+    plt.plot(VboundsXY[:, 0], VboundsXY[:, 1], 'ro')
+    plt.xlabel("Time (s)")
+    plt.ylabel("Z-Position (V)")
+
+    plt.subplot(2, 3, 2)
+    plt.title("Fitted Retract")
+    plt.plot(retractZ, retractD)
+    plt.plot(retractZ, baselineS*retractZ + baselineI)
+    plt.plot(retractZ, contactS*retractZ + contactI)
+    plt.ylabel("Deflection (nm)")
+    plt.xlabel("Z-position (nm)")
+    plt.axis([min(retractZ)-5, max(retractZ)+5, min(retractD)-10,
+              max(retractD)+10])
+
+    plt.subplot(2, 3, 3)
+    plt.title("Full Retract")
+    plt.plot(retractZ, retractD)
+    plt.plot(retractZ - x_shift, retractD - y_shift)
+    plt.plot(0, 0, 'ro')
+    plt.ylabel("Deflection (nm)")
+    plt.xlabel("Z-position (nm)")
+
+    plt.subplot(2, 3, 4)
+    plt.title("Retract")
+    plt.plot(retractZ - x_shift, retractD - y_shift)
+    plt.plot(0, 0, 'ro')
+    plt.ylabel("Deflection (nm)")
+    plt.xlabel("Z-position (nm)")
+    plt.axis([-100, 10, min(retractD - y_shift)-5, 30])
+
+    if skipPLT5:
+        plt.subplot(2, 3, 5)
+        plt.title("Fit")
+        plt.plot(separation[originPt:ruptureI],
+                 smooth25[originPt:ruptureI], 'b.')
+        # plt.plot(separation[originPt:ruptureI], result.init_fit, 'k--')
+        plt.plot(separation[originPt:ruptureI], result.best_fit, 'r-')
+        plt.ylabel("Force (nN)")
+        plt.xlabel("Separation (nm)")
+    else:
+        plt.subplot(2, 3, 5)
+        plt.title("Fit")
+        plt.plot(separation[originPt:ruptureI],
+                 smooth25[originPt:ruptureI], 'b.')
+        plt.ylabel("Force (nN)")
+        plt.xlabel("Separation (nm)")

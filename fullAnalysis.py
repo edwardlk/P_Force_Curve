@@ -10,7 +10,7 @@ from scipy import stats
 from scipy.optimize import curve_fit
 from lmfit import Model
 from polymerModels import WLCmodel, FJCmodel
-from PFCfuncs import outputFiles, smooth, returnBoundaries
+from PFCfuncs import outputFiles, smooth, returnBoundaries, plotEverything
 
 # Designate input and output directories.
 root = Tk()
@@ -212,74 +212,9 @@ for x1 in range(len(dataFiles)):
                comments="", delimiter=',')
 
     # Figures
-
-    plt.figure(figsize=(20, 10))
-    plt.subplot(2, 3, 1)
-    plt.title("Z-position (nm)")
-    plt.plot(timeCh1, distance)
-    plt.plot(VboundsXY[:, 0], VboundsXY[:, 1], 'ro')
-    plt.xlabel("Time (s)")
-    plt.ylabel("Z-Position (V)")
-
-    plt.subplot(2, 3, 2)
-    plt.title("Fitted Retract")
-    plt.plot(retractZ, retractD)
-    plt.plot(retractZ, baselineS*retractZ + baselineI)
-    plt.plot(retractZ, contactS*retractZ + contactI)
-    plt.ylabel("Deflection (nm)")
-    plt.xlabel("Z-position (nm)")
-    plt.axis([min(retractZ)-5, max(retractZ)+5, min(retractD)-10,
-              max(retractD)+10])
-
-    plt.subplot(2, 3, 3)
-    plt.title("Full Retract")
-    plt.plot(retractZ, retractD)
-    plt.plot(retractZ - x_shift, retractD - y_shift)
-    plt.plot(0, 0, 'ro')
-    plt.ylabel("Deflection (nm)")
-    plt.xlabel("Z-position (nm)")
-
-    plt.subplot(2, 3, 4)
-    plt.title("Retract")
-    plt.plot(retractZ - x_shift, retractD - y_shift)
-    plt.plot(0, 0, 'ro')
-    plt.ylabel("Deflection (nm)")
-    plt.xlabel("Z-position (nm)")
-    plt.axis([-100, 10, min(retractD - y_shift)-5, 30])
-
-    if skipPLT5:
-        plt.subplot(2, 3, 5)
-        plt.title("Fit")
-        plt.plot(separation[originPt:ruptureI],
-                 smooth25[originPt:ruptureI], 'b.')
-        # plt.plot(separation[originPt:ruptureI], result.init_fit, 'k--')
-        plt.plot(separation[originPt:ruptureI], result.best_fit, 'r-')
-        plt.ylabel("Force (nN)")
-        plt.xlabel("Separation (nm)")
-    else:
-        plt.subplot(2, 3, 5)
-        plt.title("Fit")
-        plt.plot(separation[originPt:ruptureI],
-                 smooth25[originPt:ruptureI], 'b.')
-        plt.ylabel("Force (nN)")
-        plt.xlabel("Separation (nm)")
-
-    # if skipPLT6:
-    #     plt.subplot(2, 3, 6)
-    #     plt.title("Fit")
-    #     plt.plot(separation[originPt:ruptureI],
-    #              smooth25[originPt:ruptureI], 'b.')
-    #     # plt.plot(separation[originPt:ruptureI], FJCresult.init_fit, 'k--')
-    #     plt.plot(FJCresult.best_fit, smooth25[originPt:ruptureI], 'r-')
-    #     plt.ylabel("Force (nN)")
-    #     plt.xlabel("Separation (nm)")
-    # else:
-    #     plt.subplot(2, 3, 6)
-    #     plt.title("Fit")
-    #     plt.plot(separation[originPt:ruptureI],
-    #              smooth25[originPt:ruptureI], 'b.')
-    #     plt.ylabel("Force (nN)")
-    #     plt.xlabel("Separation (nm)")
+    plotEverything(skipPLT5, originPt, ruptureI, smooth25, separation,
+                   baselineS, baselineI, contactS, contactI, result,
+                   timeCh1, distance, retractZ, retractD, VboundsXY, VboundsI)
 
     plt.savefig(path.join(dstDir, currentpic))
     plt.close()
