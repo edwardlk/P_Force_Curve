@@ -107,7 +107,8 @@ def returnBoundaries(xdata, ydata, resolution):
     y_points = np.zeros(points)
     int_points = np.zeros(points)
     bound_pts = np.zeros((5, 2))
-    Vbounds = np.zeros((5, 3))
+    VboundsXY = np.zeros((5, 2))
+    VboundsI = np.zeros(5, dtype=int)
 
     for x in range(points):
         low = int(x*numPoints/points)
@@ -130,12 +131,12 @@ def returnBoundaries(xdata, ydata, resolution):
     bndCnt = 0
     for x in range(numPoints):
         if xdata[x] > bound_pts[bndCnt, 0]:
-            Vbounds[bndCnt, 0] = xdata[x-1]
-            Vbounds[bndCnt, 1] = ydata[x-1]
-            Vbounds[bndCnt, 2] = x
+            VboundsXY[bndCnt, 0] = xdata[x-1]
+            VboundsXY[bndCnt, 1] = ydata[x-1]
+            VboundsI[bndCnt] = x
             # bndSwitch = False
             bndCnt = bndCnt+1
         if bndCnt > 4:
             break
 
-    return Vbounds
+    return VboundsXY, VboundsI

@@ -57,24 +57,25 @@ for x1 in range(len(dataFiles)):
 
     dataFile = np.genfromtxt(path.join(srcDir, currentfile), skip_header=1)
 
+    # units: s, V, s, m
     (timeCh1, distance, timeDefl, deflection) = dataFile.T
-    deflection = deflection*1000000000
+    deflection = deflection*1000000000  # convert deflection to nm
 
     # Stiffness
     k_L = 0.034  # N/m
 
     # Find boundaries of setup, approach, retract regions
     # using z-piezo position
-    Vbounds = returnBoundaries(timeCh1, distance, 500)
+    VboundsXY, VboundsI = returnBoundaries(timeCh1, distance, 500)
 
     # Rescaled vectors to simplify following functions
-    approachT = timeCh1[int(Vbounds[1, 2]):int(Vbounds[2, 2])]
-    approachZ = 4.77*13*distance[int(Vbounds[1, 2]):int(Vbounds[2, 2])]
-    approachD = deflection[int(Vbounds[1, 2]):int(Vbounds[2, 2])]
+    approachT = timeCh1[VboundsI[1]:VboundsI[2]]
+    approachZ = 4.77*13*distance[VboundsI[1]:VboundsI[2]]
+    approachD = deflection[VboundsI[1]:VboundsI[2]]
     approachF = k_L * approachD
-    retractT = timeCh1[int(Vbounds[3, 2]):int(Vbounds[4, 2])]
-    retractZ = 4.77*13*distance[int(Vbounds[3, 2]):int(Vbounds[4, 2])]
-    retractD = deflection[int(Vbounds[3, 2]):int(Vbounds[4, 2])]
+    retractT = timeCh1[VboundsI[3]:VboundsI[4]]
+    retractZ = 4.77*13*distance[VboundsI[3]:VboundsI[4]]
+    retractD = deflection[VboundsI[3]:VboundsI[4]]
     retractF = k_L * retractD
 
     # Remove data if deflection out of range
@@ -111,7 +112,7 @@ for x1 in range(len(dataFiles)):
     # __4 = p_value ; __5 = std_error
     # Setup Speed
     setup1, setup2, setup3, setup4, setup5 = stats.linregress(
-        timeCh1[0:int(Vbounds[0, 2])], distance[0:int(Vbounds[0, 2])])
+        timeCh1[0:VboundsI[0]], distance[0:VboundsI[0]])
     # print "setup v =", abs(setup1*13*4.77), "nm/s"
 
     # Approach Speed
@@ -199,8 +200,8 @@ for x1 in range(len(dataFiles)):
     ruptureOut = np.column_stack((separation[originPt:ruptureI],
                                   smooth25[originPt:ruptureI]))
 
-    csvheader = ("z-position(nm),separation(nm),retractD,Force(nN),Force_11(nN),"
-                 "Force_25(nN),Force_55(nN),Force_75(nN),v=%d nm/s"
+    csvheader = ("z-position(nm),separation(nm),retractD,Force(nN),Force_11"
+                 "(nN),Force_25(nN),Force_55(nN),Force_75(nN),v=%d nm/s"
                  % (abs(retr1)))
 
     ruptureH = "separation(nm),Force_25(nN)"
@@ -216,7 +217,7 @@ for x1 in range(len(dataFiles)):
     plt.subplot(2, 3, 1)
     plt.title("Z-position (nm)")
     plt.plot(timeCh1, distance)
-    plt.plot(Vbounds[:, 0], Vbounds[:, 1], 'ro')
+    plt.plot(VboundsXY[:, 0], VboundsXY[:, 1], 'ro')
     plt.xlabel("Time (s)")
     plt.ylabel("Z-Position (V)")
 
