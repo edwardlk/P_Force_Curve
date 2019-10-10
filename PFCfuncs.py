@@ -6,7 +6,7 @@ from scipy import stats
 from lmfit import Model
 from os import path
 import pandas as pd
-from polymerModels import WLCmodel
+from polymerModels import WLCmodel, FJCmodel
 
 
 def outputFiles(dataFiles, addon):
@@ -152,7 +152,8 @@ def returnBoundaries(xdata, ydata, resolution):
 def plotEverything(skipPLT5, originPt, ruptureI, smooth25, separation,
                    baselineS, baselineI, contactS, contactI, result,
                    timeCh1, distance, retractZ, retractD, VboundsXY, VboundsI):
-
+    """ Info
+    """
     x_shift = (baselineI - contactI)/(contactS - baselineS)
     y_shift = contactS * x_shift + contactI
 
@@ -189,6 +190,7 @@ def plotEverything(skipPLT5, originPt, ruptureI, smooth25, separation,
     plt.ylabel("Deflection (nm)")
     plt.xlabel("Z-position (nm)")
     plt.axis([-100, 10, min(retractD - y_shift)-5, 30])
+    plt.gca().xaxis.set_major_locator(plt.MultipleLocator(10))
     plt.grid(True, which="both")
 
     if skipPLT5:
@@ -228,6 +230,8 @@ def plotEverything(skipPLT5, originPt, ruptureI, smooth25, separation,
 
 def mainAnalysis(x1, srcDir, dstDir, csvDir,
                  dataFiles, dataImg, csvOutput, csvRupture):
+    """ Info
+    """
     currentfile = dataFiles[x1]
     currentpic = dataImg[x1]
     outputfile = csvOutput[x1]
@@ -319,52 +323,54 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     # Fit WLC model to rupture
     separation = (retractZ - (retractD - y_shift) - x_shift)
 
-    skipPLT5 = True
-    gmod = Model(WLCmodel)
-    gmod.set_param_hint('L_C', value=-60.0)
-    gmod.set_param_hint('L_P', value=-0.38, min=-0.42, max=-0.34)
-    gmod.set_param_hint('a', value=0.0, min=-10.0, max=10.0)
-    gmod.set_param_hint('b', value=0.0, min=-10.0, max=10.0)
-    params = gmod.make_params()
-    try:
-        result = gmod.fit(smooth25[originPt:ruptureI],
-                          x=separation[originPt:ruptureI])  # method='cobyla'
-    except Exception:
-        skipPLT5 = False
-        # sys.exc_clear() - no longer in python3
+    skipPLT5 = False
     if skipPLT5:
-        x_off = result.params['a'].value
-        y_off = result.params['b'].value
-        WLC_P = result.params['L_P'].value
-        WLC_L0 = result.params['L_C'].value
-    else:
-        x_off = 0.0
-        y_off = 0.0
-        WLC_P = 0.0
-        WLC_L0 = 0.0
+        gmod = Model(WLCmodel)
+        gmod.set_param_hint('L_C', value=-60.0)
+        gmod.set_param_hint('L_P', value=-0.38, min=-0.42, max=-0.34)
+        gmod.set_param_hint('a', value=0.0, min=-10.0, max=10.0)
+        gmod.set_param_hint('b', value=0.0, min=-10.0, max=10.0)
+        params = gmod.make_params()
+        try:
+            result = gmod.fit(smooth25[originPt:ruptureI],
+                              x=separation[originPt:ruptureI])  # method='cobyla'
+        except Exception:
+            skipPLT5 = False
+            # sys.exc_clear() - no longer in python3
+        if skipPLT5:
+            x_off = result.params['a'].value
+            y_off = result.params['b'].value
+            WLC_P = result.params['L_P'].value
+            WLC_L0 = result.params['L_C'].value
+        else:
+            x_off = 0.0
+            y_off = 0.0
+            WLC_P = 0.0
+            WLC_L0 = 0.0
 
-    # # Fit FJC model to rupture
-    # skipPLT6 = True
-    # FJCmod = Model(FJCmodel)
-    # FJCmod.set_param_hint('L0')  # , value = -56.0)
-    # FJCmod.set_param_hint('b')  # , value = -3.8, min=-4.0, max=-3.6)
-    # # FJCmod.set_param_hint('a', value=0.0, min=-5.0, max=5.0)
-    # FJCparams = FJCmod.make_params()
-    # try:
-    #     FJCresult = FJCmod.fit(separation[originPt:ruptureI],
-    #                            x=smooth25[originPt:ruptureI])  # method='cobyla'
-    # except Exception:
-    #     print("FJC failed")
-    #     skipPLT6 = False
-    #     sys.exc_clear()
-    # if skipPLT6:
-    #     # x_off = result.params['a'].value
-    #     FJC_L0 = FJCresult.params['L0'].value
-    #     FJC_b = FJCresult.params['b'].value
-    # else:
-    #     # x_off = 0.0
-    #     FJC_L0 = 0.0
-    #     FJC_b = 0.0
+    # Fit FJC model to rupture
+    skipPLT6 = False
+    if skipPLT6:
+        FJCmod = Model(FJCmodel)
+        FJCmod.set_param_hint('L0')  # , value = -56.0)
+        FJCmod.set_param_hint('b')  # , value = -3.8, min=-4.0, max=-3.6)
+        # FJCmod.set_param_hint('a', value=0.0, min=-5.0, max=5.0)
+        FJCparams = FJCmod.make_params()
+        try:
+            FJCresult = FJCmod.fit(separation[originPt:ruptureI],
+                                   x=smooth25[originPt:ruptureI])  # method='cobyla'
+        except Exception:
+            print("FJC failed")
+            skipPLT6 = False
+            sys.exc_clear()
+        if skipPLT6:
+            # x_off = result.params['a'].value
+            FJC_L0 = FJCresult.params['L0'].value
+            FJC_b = FJCresult.params['b'].value
+        else:
+            # x_off = 0.0
+            FJC_L0 = 0.0
+            FJC_b = 0.0
 
     # Add data to pandas DataFrame
     df = pd.read_pickle(path.join(csvDir, "dummy.pkl"))
@@ -399,3 +405,27 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     plt.close()
 
     print("Completed ", x1+1, " of ", len(dataFiles), " files.")
+
+
+def fitAnalysis(x, srcDir, dstDir, csvDir, rupGuess, dataFiles, rupImg,
+                rupOutput):
+    """ Info
+    """
+    # Exit if no rupture to analyze
+    if rupGuess.at[x, "min_location"] > 0:
+        return
+
+    currentfile = rupGuess.at[x, "filename"][:-4] + ".csv"
+    minGuess = rupGuess.at[x, "min_location"]
+    fitStart = rupGuess.at[x, "fit_start"]
+
+    currentpic = rupImg[x]
+    outputfile = rupOutput[x]
+
+    dataFile = pd.read_csv(path.join(srcDir, currentfile))
+
+    # Find min near minGuess, get row #'s of min and fitStart
+
+    # slice datafile
+
+    # fit, may need to rescale data
