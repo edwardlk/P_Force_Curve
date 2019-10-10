@@ -1,7 +1,9 @@
+import time
 from os import path, listdir, makedirs
 from tkinter import Tk, filedialog
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
+import multiprocessing as mp
 
 
 def outputFiles(dataFiles, addon):
@@ -12,38 +14,7 @@ def outputFiles(dataFiles, addon):
     return L
 
 
-# Designate input and output directories.
-root = Tk()
-root.withdraw()
-
-info = ("Please select the folder that contains "
-        "the data files you wish to reformat.")
-
-srcDir = filedialog.askdirectory(parent=root, initialdir="/", title=info)
-dstDir = path.join(srcDir, 'output')
-csvDir = path.join(srcDir, 'csv')
-
-# Get file list from source directory
-
-dataFiles = listdir(srcDir)
-dataFiles.sort()
-
-# Make output directory if it does not exist
-# if the directory does exist, deletes 'output' from dataFiles
-if not path.exists(dstDir):
-    makedirs(dstDir)
-else:
-    dataFiles.remove('output')
-# if not path.exists(csvDir):
-#     makedirs(csvDir)
-# else:
-#     dataFiles.remove('csv')
-
-# Create output files' names
-dataOutput = outputFiles(dataFiles, '-output.txt')
-# csvOutput = outputFiles(dataFiles, '.csv')
-
-for x in range(len(dataFiles)):
+def dataAlign(x, srcDir, dstDir, dataFiles, dataOutput):
     currentfile = dataFiles[x]
     outputfile = dataOutput[x]
 
@@ -64,8 +35,55 @@ for x in range(len(dataFiles)):
 
     np.savetxt(path.join(dstDir, outputfile), combinedFile,
                header="x(s) y0(V) x(s) y1(m)", comments="")
-
     print("Completed ", x+1, " of ", len(dataFiles), " files.")
+
+
+def main():
+    # Designate input and output directories.
+    root = Tk()
+    root.withdraw()
+
+    info = ("Please select the folder that contains "
+            "the data files you wish to reformat.")
+
+    srcDir = filedialog.askdirectory(parent=root, initialdir="/", title=info)
+    dstDir = path.join(srcDir, 'output')
+    # csvDir = path.join(srcDir, 'csv')
+
+    start = time.time()
+
+    # Get file list from source directory
+    dataFiles = listdir(srcDir)
+    dataFiles.sort()
+
+    # Make output directory if it does not exist
+    # if the directory does exist, deletes 'output' from dataFiles
+    if not path.exists(dstDir):
+        makedirs(dstDir)
+    else:
+        dataFiles.remove('output')
+    # if not path.exists(csvDir):
+    #     makedirs(csvDir)
+    # else:
+    #     dataFiles.remove('csv')
+
+    # Create output files' names
+    dataOutput = outputFiles(dataFiles, '-output.txt')
+    # csvOutput = outputFiles(dataFiles, '.csv')
+
+    pool = mp.Pool(processes=5)
+    for x in range(len(dataFiles)):
+        pool.apply_async(dataAlign, args=(x, srcDir, dstDir, dataFiles,
+                                          dataOutput,))
+    pool.close()
+    pool.join()
+    print("Finished analyzing", path.split(srcDir)[1])
+    print('It took {:.2f} seconds to analyze %d files.'.format(
+          time.time()-start) % (len(dataFiles)))
+
+
+if __name__ == '__main__':
+    main()
 
 # fig = plt.figure()
 # ax = fig.add_subplot(1, 1, 1)
