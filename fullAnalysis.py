@@ -1,17 +1,10 @@
-import sys
 import time
 from tkinter import Tk, filedialog
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import multiprocessing as mp
-import multiLinReg as MLR
 from os import path, listdir, makedirs
-from scipy import stats
-from scipy.optimize import curve_fit
-from lmfit import Model
-from polymerModels import WLCmodel, FJCmodel
-from PFCfuncs import outputFiles, smooth, returnBoundaries, plotEverything, mainAnalysis
+from PFCfuncs import outputFiles, mainAnalysis
 
 
 def main():
@@ -49,8 +42,9 @@ def main():
 
     # Pandas DataFrame to store measurements
     fillData = np.array([np.arange(len(dataFiles))]*7).T
-    df = pd.DataFrame(fillData, columns=['file', 'rupture force (pN)', 'location',
-                                         'speed (nm/s)', 'WLC-P', 'WLC-L0', 'x_off'])
+    df = pd.DataFrame(fillData, columns=['file', 'rupture force (pN)',
+                                         'location', 'speed (nm/s)', 'WLC-P',
+                                         'WLC-L0', 'x_off'])
     df.to_pickle(path.join(csvDir, "dummy.pkl"))
 
     pool = mp.Pool(processes=5)
@@ -64,8 +58,8 @@ def main():
     df = pd.read_pickle(path.join(csvDir, "dummy.pkl"))
     df.to_excel(path.join(csvDir, 'dataframe.xlsx'), sheet_name='Sheet1')
     print("Finished analyzing", path.split(srcDir)[1])
-    print('It took {:.2f} seconds to analyze %d files.'.format(time.time()-start)
-          % (len(dataFiles)))
+    print('It took {:.2f} seconds to analyze %d files.'.format(
+          time.time()-start) % (len(dataFiles)))
 
 
 if __name__ == '__main__':

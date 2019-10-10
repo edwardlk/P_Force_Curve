@@ -6,7 +6,7 @@ from scipy import stats
 from lmfit import Model
 from os import path
 import pandas as pd
-from polymerModels import WLCmodel, FJCmodel
+from polymerModels import WLCmodel
 
 
 def outputFiles(dataFiles, addon):
@@ -189,6 +189,7 @@ def plotEverything(skipPLT5, originPt, ruptureI, smooth25, separation,
     plt.ylabel("Deflection (nm)")
     plt.xlabel("Z-position (nm)")
     plt.axis([-100, 10, min(retractD - y_shift)-5, 30])
+    plt.grid(True, which="both")
 
     if skipPLT5:
         plt.subplot(2, 3, 5)
@@ -239,7 +240,7 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     deflection = deflection*1000000000  # convert deflection to nm
 
     # Stiffness
-    k_L = 0.034  # N/m
+    k_L = 1.0  # 0.034  # N/m
 
     # Find boundaries of setup, approach, retract regions
     # using z-piezo position
