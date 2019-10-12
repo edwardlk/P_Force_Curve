@@ -10,12 +10,29 @@ from polymerModels import WLCmodel, FJCmodel
 
 
 def outputFiles(dataFiles, addon):
-    """Takes a list of file names, removes the rxtension, then adds a new
+    """Takes a list of file names, removes the extension, then adds a new
        extension. returns a list"""
     L = []
     for x in range(len(dataFiles)):
         temp = dataFiles[x]
         L.append(temp[:-4] + addon)
+    return L
+
+
+def fitOutputFiles(rupGuess, addon):
+    """Takes a dataframe with list of file names in Col1, removes the
+       extension, then adds a new extension. can handle multiple events in a
+       single file. returns a list"""
+    L = []
+    for x in range(len(rupGuess)):
+        temp = rupGuess.iloc[x, 0]
+        y = 1
+        L.append(temp[:-10] + 'C' + str(y) + addon)
+        if x < len(rupGuess)-1:
+            if rupGuess.iloc[x, 0] == rupGuess.iloc[x+1, 0]:
+                x += 1
+                y += 1
+                L.append(temp[:-10] + 'C' + str(y) + addon)
     return L
 
 
@@ -189,7 +206,7 @@ def plotEverything(skipPLT5, originPt, ruptureI, smooth25, separation,
     plt.plot(0, 0, 'ro')
     plt.ylabel("Deflection (nm)")
     plt.xlabel("Z-position (nm)")
-    plt.axis([-100, 10, min(retractD - y_shift)-5, 30])
+    plt.axis([-150, 10, min(retractD - y_shift)-5, 30])
     plt.gca().xaxis.set_major_locator(plt.MultipleLocator(10))
     plt.grid(True, which="both")
 
@@ -323,7 +340,7 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     # Fit WLC model to rupture
     separation = (retractZ - (retractD - y_shift) - x_shift)
 
-    skipPLT5 = False
+    skipPLT5 = True
     if skipPLT5:
         gmod = Model(WLCmodel)
         gmod.set_param_hint('L_C', value=-60.0)
@@ -407,7 +424,7 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     print("Completed ", x1+1, " of ", len(dataFiles), " files.")
 
 
-def fitAnalysis(x, srcDir, dstDir, csvDir, rupGuess, dataFiles, rupImg,
+def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
                 rupOutput):
     """ Info
     """
@@ -418,14 +435,44 @@ def fitAnalysis(x, srcDir, dstDir, csvDir, rupGuess, dataFiles, rupImg,
     currentfile = rupGuess.at[x, "filename"][:-4] + ".csv"
     minGuess = rupGuess.at[x, "min_location"]
     fitStart = rupGuess.at[x, "fit_start"]
-
     currentpic = rupImg[x]
     outputfile = rupOutput[x]
 
     dataFile = pd.read_csv(path.join(srcDir, currentfile))
 
     # Find min near minGuess, get row #'s of min and fitStart
+    temp = abs(dataFile['z-position(nm)'] - minGuess)
+    minGuessID = temp.idxmin()
+    minGuessRange = int(2.5 * len(dataFile['z-position(nm)']) / (
+        dataFile['z-position(nm)'].max() - dataFile['z-position(nm)'].min()))
+    minID = dataFile['retractD'][(minGuessID-minGuessRange):
+                                 (minGuessID+minGuessRange)].idxmin()
+
+    temp = abs(dataFile['z-position(nm)'] - fitStart)
+    fitStartID = temp.idxmin()
 
     # slice datafile
+    fitData = dataFile[fitStartID:minID]
 
     # fit, may need to rescale data
+
+    plt.figure()
+    plt.title(currentfile)
+    plt.plot(dataFile['z-position(nm)'], dataFile['retractD'])
+    plt.axis([-150, 10,
+              min(dataFile['retractD'])-5, min(dataFile['retractD'])+50])
+    # plt.plot(dataFile['z-position(nm)'].iloc[[minGuessID]],
+    #          dataFile['retractD'].iloc[[minGuessID]]+5, 'rx')
+    # plt.plot(dataFile['z-position(nm)'].iloc[[minGuessID+minGuessRange]],
+    #          dataFile['retractD'].iloc[[minGuessID]]+5, 'r|')
+    # plt.plot(dataFile['z-position(nm)'].iloc[[minGuessID-minGuessRange]],
+    #          dataFile['retractD'].iloc[[minGuessID]]+5, 'r|')
+    # plt.plot(dataFile['z-position(nm)'].iloc[[minID]],
+    #          dataFile['retractD'].iloc[[minID]], 'gx')
+    # plt.plot(dataFile['z-position(nm)'].iloc[[fitStartID]],
+    #          dataFile['retractD'].iloc[[fitStartID]]-2, 'g|')
+    plt.plot(fitData['z-position(nm)'], fitData['retractD'], 'r')
+    plt.ylabel("retractD")
+    plt.xlabel("Z-position (nm)")
+    plt.show()
+    plt.close()

@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import multiprocessing as mp
 from os import path, listdir, makedirs
-from PFCfuncs import outputFiles, fitAnalysis
+from PFCfuncs import fitOutputFiles, fitAnalysis
 
 
 def main():
@@ -12,8 +12,8 @@ def main():
     testing = True
 
     if testing:
-        srcDir = R"D:/Ed/Desktop/New folder/fitTest"
-        rupFileLoc = R"D:/Ed/Desktop/New folder/fitTest/proteinFit.csv"
+        srcDir = R"D:/Ed/Desktop/fitTest"
+        rupFileLoc = R"D:/Ed/Desktop/fitTest/proteinFit.csv"
     else:
         # Designate input and output directories.
         root = Tk()
@@ -28,7 +28,7 @@ def main():
         rupFileLoc = filedialog.askopenfilename(parent=root, initialdir=srcDir,
                                                 title=info2)
 
-    dstDir = path.join(srcDir, 'fitImages')
+    imgDir = path.join(srcDir, 'fitImages')
     csvDir = path.join(srcDir, 'fitCSVs')
     rupFile = path.split(rupFileLoc)[1]
 
@@ -42,8 +42,8 @@ def main():
     if rupFile in dataFiles:
         dataFiles.remove(rupFile)
 
-    if not path.exists(dstDir):
-        makedirs(dstDir)
+    if not path.exists(imgDir):
+        makedirs(imgDir)
     else:
         dataFiles.remove('fitImages')
     if not path.exists(csvDir):
@@ -51,22 +51,25 @@ def main():
     else:
         dataFiles.remove('fitCSVs')
 
-    # Create output files' names
-    rupImg = outputFiles(dataFiles, '-fit.png')
-    rupOutput = outputFiles(dataFiles, '-fit.csv')
-
     rupGuess = pd.read_csv(rupFileLoc)
 
+    # Create output files' names
+    rupImg = fitOutputFiles(rupGuess, '-fit.png')
+    rupOutput = fitOutputFiles(rupGuess, '-fit.csv')
+
     print(rupGuess)
+    print(rupImg)
 
     # Pandas DataFrame to store measurements
     fillData = np.array([np.arange(len(rupGuess))]*6).T
     df = pd.DataFrame(fillData, columns=['file', 'rupture force (pN)',
-                                         'location', 'WLC-P', 'WLC-L0', 'x_off'])
+                                         'location', 'WLC-P', 'WLC-L0',
+                                         'x_off'])
     df.to_pickle(path.join(csvDir, "dummy.pkl"))
 
     for x in range(len(rupGuess)):
-        fitAnalysis(x, srcDir, dstDir, csvDir, rupGuess, dataFiles, rupImg, rupOutput)
+        fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
+                    rupOutput)
 
     # pool = mp.Pool(processes=5)
     # for x in range(len(dataFiles)):
