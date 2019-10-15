@@ -424,6 +424,29 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     print("Completed ", x1+1, " of ", len(dataFiles), " files.")
 
 
+def fitGuessPlot(dataFile, xDataCol, yDataCol, minGuessID, minGuessRange,
+                 fitStartID, minID):
+    """
+    """
+    plt.plot(dataFile[xDataCol], dataFile[yDataCol])
+    plt.axis([-150, 10,
+              min(dataFile[yDataCol])-5, min(dataFile[yDataCol])+10])
+    plt.plot(dataFile[xDataCol].iloc[[minGuessID]],
+             dataFile[yDataCol].iloc[[minGuessID]]+5, 'rx')
+    plt.plot(dataFile[xDataCol].iloc[[minGuessID+minGuessRange]],
+             dataFile[yDataCol].iloc[[minGuessID]]+5, 'r|')
+    plt.plot(dataFile[xDataCol].iloc[[minGuessID-minGuessRange]],
+             dataFile[yDataCol].iloc[[minGuessID]]+5, 'r|')
+    plt.plot(dataFile[xDataCol].iloc[[minID]],
+             dataFile[yDataCol].iloc[[minID]], 'gx')
+    plt.plot(dataFile[xDataCol].iloc[[fitStartID]],
+             dataFile[yDataCol].iloc[[fitStartID]]-2, 'g|')
+    plt.plot(dataFile[fitStartID:minID][xDataCol],
+             dataFile[fitStartID:minID][yDataCol], 'r')
+    plt.ylabel(yDataCol)
+    plt.xlabel(xDataCol)
+
+
 def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
                 rupOutput):
     """ Info
@@ -440,13 +463,19 @@ def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
 
     dataFile = pd.read_csv(path.join(srcDir, currentfile))
 
+    # lidy of y-data columns from files
+    yDataColList = ['retractD', 'Force(nN)', 'Force_11(nN)', 'Force_25(nN)',
+                    'Force_55(nN)', 'Force_75(nN)']
+
+    yDataCol = yDataColList[4]
+
     # Find min near minGuess, get row #'s of min and fitStart
     temp = abs(dataFile['z-position(nm)'] - minGuess)
     minGuessID = temp.idxmin()
     minGuessRange = int(2.5 * len(dataFile['z-position(nm)']) / (
         dataFile['z-position(nm)'].max() - dataFile['z-position(nm)'].min()))
-    minID = dataFile['retractD'][(minGuessID-minGuessRange):
-                                 (minGuessID+minGuessRange)].idxmin()
+    minID = dataFile[yDataCol][(minGuessID-minGuessRange):
+                               (minGuessID+minGuessRange)].idxmin()
 
     temp = abs(dataFile['z-position(nm)'] - fitStart)
     fitStartID = temp.idxmin()
@@ -458,21 +487,10 @@ def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
 
     plt.figure()
     plt.title(currentfile)
-    plt.plot(dataFile['z-position(nm)'], dataFile['retractD'])
-    plt.axis([-150, 10,
-              min(dataFile['retractD'])-5, min(dataFile['retractD'])+50])
-    # plt.plot(dataFile['z-position(nm)'].iloc[[minGuessID]],
-    #          dataFile['retractD'].iloc[[minGuessID]]+5, 'rx')
-    # plt.plot(dataFile['z-position(nm)'].iloc[[minGuessID+minGuessRange]],
-    #          dataFile['retractD'].iloc[[minGuessID]]+5, 'r|')
-    # plt.plot(dataFile['z-position(nm)'].iloc[[minGuessID-minGuessRange]],
-    #          dataFile['retractD'].iloc[[minGuessID]]+5, 'r|')
-    # plt.plot(dataFile['z-position(nm)'].iloc[[minID]],
-    #          dataFile['retractD'].iloc[[minID]], 'gx')
-    # plt.plot(dataFile['z-position(nm)'].iloc[[fitStartID]],
-    #          dataFile['retractD'].iloc[[fitStartID]]-2, 'g|')
-    plt.plot(fitData['z-position(nm)'], fitData['retractD'], 'r')
-    plt.ylabel("retractD")
-    plt.xlabel("Z-position (nm)")
-    plt.show()
+    for x in range(6):
+        plt.subplot(2, 3, x+1)
+        fitGuessPlot(dataFile, 'z-position(nm)', yDataColList[x], minGuessID,
+                     minGuessRange, fitStartID, minID)
+    plt.savefig(path.join(imgDir, currentpic))
+    # plt.show()
     plt.close()
