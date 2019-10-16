@@ -6,7 +6,7 @@ from scipy import stats
 from lmfit import Model
 from os import path
 import pandas as pd
-from polymerModels import WLCmodel, FJCmodel
+from polymerModels import WLCmodelFull, WLCmodelNoXY, FJCmodel
 
 
 def outputFiles(dataFiles, addon):
@@ -344,7 +344,7 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
 
     skipPLT5 = True
     if skipPLT5:
-        gmod = Model(WLCmodel)
+        gmod = Model(WLCmodelFull)
         gmod.set_param_hint('L_C', value=-60.0)
         gmod.set_param_hint('L_P', value=-0.38, min=-0.42, max=-0.34)
         gmod.set_param_hint('a', value=0.0, min=-10.0, max=10.0)
