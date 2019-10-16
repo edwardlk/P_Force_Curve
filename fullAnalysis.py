@@ -9,13 +9,18 @@ from PFCfuncs import outputFiles, mainAnalysis
 
 def main():
     # Designate input and output directories.
-    root = Tk()
-    root.withdraw()
 
-    info = ("Please select the folder that contains the data files "
-            "you wish to analyze.")
+    testA = True
 
-    srcDir = filedialog.askdirectory(parent=root, initialdir="/", title=info)
+    if testA:
+        srcDir = R"D:/Ed/Desktop/fullAnalysisTest"
+    else:
+        root = Tk()
+        root.withdraw()
+        info = ("Please select the folder that contains the data files "
+                "you wish to analyze.")
+        srcDir = filedialog.askdirectory(parent=root,
+                                         initialdir="/", title=info)
     dstDir = path.join(srcDir, 'images')
     csvDir = path.join(srcDir, 'RetractCSVs')
 
@@ -47,13 +52,18 @@ def main():
                                          'WLC-L0', 'x_off'])
     df.to_pickle(path.join(csvDir, "dummy.pkl"))
 
-    pool = mp.Pool(processes=5)
-    for x1 in range(len(dataFiles)):
-        pool.apply_async(mainAnalysis, args=(x1, srcDir, dstDir, csvDir,
-                                             dataFiles, dataImg, csvOutput,
-                                             csvRupture,))
-    pool.close()
-    pool.join()
+    if testA:
+        for x1 in range(len(dataFiles)):
+            mainAnalysis(x1, srcDir, dstDir, csvDir, dataFiles, dataImg,
+                         csvOutput, csvRupture)
+    else:
+        pool = mp.Pool(processes=5)
+        for x1 in range(len(dataFiles)):
+            pool.apply_async(mainAnalysis, args=(x1, srcDir, dstDir, csvDir,
+                                                 dataFiles, dataImg, csvOutput,
+                                                 csvRupture,))
+        pool.close()
+        pool.join()
 
     df = pd.read_pickle(path.join(csvDir, "dummy.pkl"))
     df.to_excel(path.join(csvDir, 'dataframe.xlsx'), sheet_name='Sheet1')

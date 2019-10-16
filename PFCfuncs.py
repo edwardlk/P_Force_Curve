@@ -306,6 +306,8 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     x_shift = (baselineI - contactI)/(contactS - baselineS)
     y_shift = contactS * x_shift + contactI
 
+    print(currentfile + '- x,y_shift: ' + str(x_shift) + ' , ' + str(y_shift))
+
     # Linear Regression on approach/retract regions
     # __1 = slope ; __2 = intercept ; __3 = r_value ;
     # __4 = p_value ; __5 = std_error
