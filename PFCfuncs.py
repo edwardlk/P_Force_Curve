@@ -171,8 +171,6 @@ def plotEverything(skipPLT5, originPt, ruptureI, smooth25, separation,
                    timeCh1, distance, retractZ, retractD, VboundsXY, VboundsI):
     """ Info
     """
-    x_shift = (baselineI - contactI)/(contactS - baselineS)
-    y_shift = contactS * x_shift + contactI
 
     plt.figure(figsize=(20, 10))
     plt.subplot(2, 3, 1)
@@ -191,22 +189,24 @@ def plotEverything(skipPLT5, originPt, ruptureI, smooth25, separation,
     plt.xlabel("Z-position (nm)")
     plt.axis([min(retractZ)-5, max(retractZ)+5, min(retractD)-10,
               max(retractD)+10])
+    plt.grid(True, which="both")
 
     plt.subplot(2, 3, 3)
     plt.title("Full Retract")
     plt.plot(retractZ, retractD)
-    plt.plot(retractZ - x_shift, retractD - y_shift)
+    plt.plot(retractZ, retractD)
     plt.plot(0, 0, 'ro')
     plt.ylabel("Deflection (nm)")
     plt.xlabel("Z-position (nm)")
+    plt.grid(True, which="both")
 
     plt.subplot(2, 3, 4)
     plt.title("Retract")
-    plt.plot(retractZ - x_shift, retractD - y_shift)
+    plt.plot(retractZ, retractD)
     plt.plot(0, 0, 'ro')
     plt.ylabel("Deflection (nm)")
     plt.xlabel("Z-position (nm)")
-    plt.axis([-150, 10, min(retractD - y_shift)-5, 30])
+    plt.axis([-150, 10, min(retractD)-5, 30])
     plt.gca().xaxis.set_major_locator(plt.MultipleLocator(10))
     plt.grid(True, which="both")
 
@@ -271,11 +271,9 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     approachT = timeCh1[VboundsI[1]:VboundsI[2]]
     approachZ = 4.77*13*distance[VboundsI[1]:VboundsI[2]]
     approachD = deflection[VboundsI[1]:VboundsI[2]]
-    approachF = k_L * approachD
     retractT = timeCh1[VboundsI[3]:VboundsI[4]]
     retractZ = 4.77*13*distance[VboundsI[3]:VboundsI[4]]
     retractD = deflection[VboundsI[3]:VboundsI[4]]
-    retractF = k_L * retractD
 
     # Remove data if deflection out of range
     maxDefl = max(retractD)
@@ -287,12 +285,11 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     retractT = retractT[x:]
     retractZ = retractZ[x:]
     retractD = retractD[x:]
-    retractF = retractF[x:]
 
     # Fit retract curve to get baseline and contact line
     try:
-        contactS, contactI, baselineS, baselineI = MLR.multiLinReg(retractZ,
-                                                                   retractD)
+        contactS, contactI, baselineS, baselineI = MLR.multiLinReg2(retractZ,
+                                                                    retractD)
     except Exception:
         sys.exc_clear()
         print("File %s failed") % (currentfile)
@@ -306,7 +303,10 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     x_shift = (baselineI - contactI)/(contactS - baselineS)
     y_shift = contactS * x_shift + contactI
 
-    print(currentfile + '- x,y_shift: ' + str(x_shift) + ' , ' + str(y_shift))
+    retractZ = retractZ - x_shift
+    retractD = retractD - y_shift
+
+    retractD = (retractD - baselineS * retractZ) / (contactS - baselineS)
 
     # Linear Regression on approach/retract regions
     # __1 = slope ; __2 = intercept ; __3 = r_value ;
@@ -340,8 +340,9 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
             break
 
     # Fit WLC model to rupture
-    separation = (retractZ - (retractD - y_shift) - x_shift)
+    separation = retractZ - retractD
 
+    result = 999.0
     skipPLT5 = True
     if skipPLT5:
         gmod = Model(WLCmodelFull)
@@ -398,7 +399,7 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     df.to_pickle(path.join(csvDir, "dummy.pkl"))
 
     # Output Calculations
-    output = np.column_stack((retractZ - x_shift, separation, retractD,
+    output = np.column_stack((retractZ, separation, retractD,
                               k_L*(retractD - y_shift)/contactS, smooth11,
                               smooth25, smooth55, smooth75))
     ruptureOut = np.column_stack((separation[originPt:ruptureI],

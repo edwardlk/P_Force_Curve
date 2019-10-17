@@ -10,10 +10,11 @@ from PFCfuncs import outputFiles, mainAnalysis
 def main():
     # Designate input and output directories.
 
-    testA = True
+    testFile = True
+    testMulti = False
 
-    if testA:
-        srcDir = R"D:/Ed/Desktop/fullAnalysisTest"
+    if testFile:
+        srcDir = R"F:\TEST\fullAnalysisTest"
     else:
         root = Tk()
         root.withdraw()
@@ -52,7 +53,7 @@ def main():
                                          'WLC-L0', 'x_off'])
     df.to_pickle(path.join(csvDir, "dummy.pkl"))
 
-    if testA:
+    if testMulti:
         for x1 in range(len(dataFiles)):
             mainAnalysis(x1, srcDir, dstDir, csvDir, dataFiles, dataImg,
                          csvOutput, csvRupture)

@@ -66,3 +66,42 @@ def multiLinReg(x_data, y_data):
     #          y_data[init_points[maxPos, 0]], 'ro')
     # plt.show()
     return s1, i1, s2, i2
+
+
+def multiLinReg2(x_data, y_data):
+    """ Info
+    """
+    iteration = 0
+
+    left = 0
+    right = len(x_data) - 1
+    mid = (right + left) // 2
+    midLast = 0
+
+    while iteration < 100:
+        if midLast == mid:
+            break
+        pt1 = (left + mid) // 2
+        pt2 = (right + mid) // 2
+        s1c, i1c, r1c, p1c, se1c = stats.linregress(x_data[:pt1],
+                                                    y_data[:pt1])
+        s1b, i1b, r1b, p1b, se1b = stats.linregress(x_data[pt1:],
+                                                    y_data[pt1:])
+        s2c, i2c, r2c, p2c, se2c = stats.linregress(x_data[:pt2],
+                                                    y_data[:pt2])
+        s2b, i2b, r2b, p2b, se2b = stats.linregress(x_data[pt2:],
+                                                    y_data[pt2:])
+        s1 = s1c - s1b
+        s2 = s2c - s2b
+
+        if s1 > s2:
+            right = mid - 1
+            sout = [s1c, i1c, s1b, i1b]
+            midLast = mid
+        else:
+            left = mid + 1
+            sout = [s2c, i2c, s2b, i2b]
+            midLast = mid
+        mid = (right + left) // 2
+        iteration += 1
+    return sout[0], sout[1], sout[2], sout[3]
