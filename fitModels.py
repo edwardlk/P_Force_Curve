@@ -12,15 +12,15 @@ def main():
     testing = True
 
     if testing:
-        srcDir = R"D:/Ed/Desktop/fitTest"
-        rupFileLoc = R"D:/Ed/Desktop/fitTest/proteinFit.csv"
+        srcDir = R"F:/TEST/fitTest"
+        rupFileLoc = R"F:/TEST/fitTest/proteinFit.csv"
     else:
         # Designate input and output directories.
         root = Tk()
         root.withdraw()
 
         info = ("Please select the folder that contains the data files "
-            "you wish to analyze.")
+                "you wish to analyze.")
         srcDir = filedialog.askdirectory(parent=root, initialdir="/", title=info)
 
         info2 = ("Please select the file that contains the locations of the "
@@ -57,8 +57,10 @@ def main():
     rupImg = fitOutputFiles(rupGuess, '-fit.png')
     rupOutput = fitOutputFiles(rupGuess, '-fit.csv')
 
-    print(rupGuess)
     print(rupImg)
+
+    print('rupGuess = ')
+    print(rupGuess)
 
     # Pandas DataFrame to store measurements
     fillData = np.array([np.arange(len(rupGuess))]*6).T

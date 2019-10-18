@@ -270,30 +270,30 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     # Rescaled vectors to simplify following functions
     approachT = timeCh1[VboundsI[1]:VboundsI[2]]
     approachZ = 4.77*13*distance[VboundsI[1]:VboundsI[2]]
-    approachD = deflection[VboundsI[1]:VboundsI[2]]
+    # approachD = deflection[VboundsI[1]:VboundsI[2]]
     retractT = timeCh1[VboundsI[3]:VboundsI[4]]
-    retractZ = 4.77*13*distance[VboundsI[3]:VboundsI[4]]
-    retractD = deflection[VboundsI[3]:VboundsI[4]]
+    retractZ_orig = 4.77*13*distance[VboundsI[3]:VboundsI[4]]
+    retractD_orig = deflection[VboundsI[3]:VboundsI[4]]
 
     # Remove data if deflection out of range
-    maxDefl = max(retractD)
+    maxDefl = max(retractD_orig)
     x = 0
-    while retractD[x] == maxDefl:
-        if x > len(retractD)-1:
+    while retractD_orig[x] == maxDefl:
+        if x > len(retractD_orig)-1:
             break
         x += 1
     retractT = retractT[x:]
-    retractZ = retractZ[x:]
-    retractD = retractD[x:]
+    retractZ_orig = retractZ_orig[x:]
+    retractD_orig = retractD_orig[x:]
 
     # Fit retract curve to get baseline and contact line
     try:
-        contactS, contactI, baselineS, baselineI = MLR.multiLinReg2(retractZ,
-                                                                    retractD)
+        (contactS, contactI, baselineS,
+         baselineI) = MLR.multiLinReg2(retractZ_orig, retractD_orig)
     except Exception:
         sys.exc_clear()
         print("File %s failed") % (currentfile)
-        plt.plot(retractZ, retractD)
+        plt.plot(retractZ_orig, retractD_orig)
         plt.xlabel("Z-position (nm)")
         plt.ylabel("Deflection (nm)")
         plt.savefig(path.join(dstDir, currentpic))
@@ -303,8 +303,8 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     x_shift = (baselineI - contactI)/(contactS - baselineS)
     y_shift = contactS * x_shift + contactI
 
-    retractZ = retractZ - x_shift
-    retractD = retractD - y_shift
+    retractZ = retractZ_orig - x_shift
+    retractD = retractD_orig - y_shift
 
     retractD = (retractD - baselineS * retractZ) / (contactS - baselineS)
 
@@ -324,90 +324,97 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     retr1, retr2, retr3, retr4, retr5 = stats.linregress(retractT, retractZ)
     # print "retract v =", abs(retr1*13*4.77), "nm/s"
 
-    smooth11 = smooth((k_L*(retractD - y_shift)/contactS), 11, 'hanning')
-    smooth25 = smooth((k_L*(retractD - y_shift)/contactS), 25, 'hanning')
-    smooth55 = smooth((k_L*(retractD - y_shift)/contactS), 55, 'hanning')
-    smooth75 = smooth((k_L*(retractD - y_shift)/contactS), 75, 'hanning')
+    # Force smoothing
+    smDict = {
+        'smooth1': 11,
+        'smooth2': 21,
+        'smooth3': 31,
+        'smooth4': 41,
+    }
+    smooth1 = smooth((k_L*retractD), smDict['smooth1'], 'hanning')
+    smooth2 = smooth((k_L*retractD), smDict['smooth2'], 'hanning')
+    smooth3 = smooth((k_L*retractD), smDict['smooth3'], 'hanning')
+    smooth4 = smooth((k_L*retractD), smDict['smooth4'], 'hanning')
 
     # Find Rupture Force
     ruptureI = np.argmin(retractD)
-    ruptureF = k_L*(retractD[ruptureI] - y_shift)/contactS
-    ruptureL = (retractZ[ruptureI] - (retractD[ruptureI] - y_shift) - x_shift)
+    ruptureF = k_L*retractD[ruptureI]
+    ruptureL = (retractZ[ruptureI] - (retractD[ruptureI]))
 
     for x in range(len(retractZ)):
-        if (retractZ[x] - x_shift) < 0:
+        if (retractZ[x]) < 0:
             originPt = x
             break
 
     # Fit WLC model to rupture
     separation = retractZ - retractD
 
-    result = 999.0
-    skipPLT5 = True
-    if skipPLT5:
-        gmod = Model(WLCmodelFull)
-        gmod.set_param_hint('L_C', value=-60.0)
-        gmod.set_param_hint('L_P', value=-0.38, min=-0.42, max=-0.34)
-        gmod.set_param_hint('a', value=0.0, min=-10.0, max=10.0)
-        gmod.set_param_hint('b', value=0.0, min=-10.0, max=10.0)
-        params = gmod.make_params()
-        try:
-            result = gmod.fit(smooth25[originPt:ruptureI],
-                              x=separation[originPt:ruptureI])  # method='cobyla'
-        except Exception:
-            skipPLT5 = False
-            # sys.exc_clear() - no longer in python3
-        if skipPLT5:
-            x_off = result.params['a'].value
-            y_off = result.params['b'].value
-            WLC_P = result.params['L_P'].value
-            WLC_L0 = result.params['L_C'].value
-        else:
-            x_off = 0.0
-            y_off = 0.0
-            WLC_P = 0.0
-            WLC_L0 = 0.0
+    # result = 999.0
+    # skipPLT5 = False
+    # if skipPLT5:
+    #     gmod = Model(WLCmodelFull)
+    #     gmod.set_param_hint('L_C', value=-60.0)
+    #     gmod.set_param_hint('L_P', value=-0.38, min=-0.42, max=-0.34)
+    #     gmod.set_param_hint('a', value=0.0, min=-10.0, max=10.0)
+    #     gmod.set_param_hint('b', value=0.0, min=-10.0, max=10.0)
+    #     params = gmod.make_params()
+    #     try:
+    #         result = gmod.fit(smooth2[originPt:ruptureI],
+    #                           x=separation[originPt:ruptureI])  # method='cobyla'
+    #     except Exception:
+    #         skipPLT5 = False
+    #         # sys.exc_clear() - no longer in python3
+    #     if skipPLT5:
+    #         x_off = result.params['a'].value
+    #         y_off = result.params['b'].value
+    #         WLC_P = result.params['L_P'].value
+    #         WLC_L0 = result.params['L_C'].value
+    #     else:
+    #         x_off = 0.0
+    #         y_off = 0.0
+    #         WLC_P = 0.0
+    #         WLC_L0 = 0.0
 
-    # Fit FJC model to rupture
-    skipPLT6 = False
-    if skipPLT6:
-        FJCmod = Model(FJCmodel)
-        FJCmod.set_param_hint('L0')  # , value = -56.0)
-        FJCmod.set_param_hint('b')  # , value = -3.8, min=-4.0, max=-3.6)
-        # FJCmod.set_param_hint('a', value=0.0, min=-5.0, max=5.0)
-        FJCparams = FJCmod.make_params()
-        try:
-            FJCresult = FJCmod.fit(separation[originPt:ruptureI],
-                                   x=smooth25[originPt:ruptureI])  # method='cobyla'
-        except Exception:
-            print("FJC failed")
-            skipPLT6 = False
-            sys.exc_clear()
-        if skipPLT6:
-            # x_off = result.params['a'].value
-            FJC_L0 = FJCresult.params['L0'].value
-            FJC_b = FJCresult.params['b'].value
-        else:
-            # x_off = 0.0
-            FJC_L0 = 0.0
-            FJC_b = 0.0
+    # # Fit FJC model to rupture
+    # skipPLT6 = False
+    # if skipPLT6:
+    #     FJCmod = Model(FJCmodel)
+    #     FJCmod.set_param_hint('L0')  # , value = -56.0)
+    #     FJCmod.set_param_hint('b')  # , value = -3.8, min=-4.0, max=-3.6)
+    #     # FJCmod.set_param_hint('a', value=0.0, min=-5.0, max=5.0)
+    #     FJCparams = FJCmod.make_params()
+    #     try:
+    #         FJCresult = FJCmod.fit(separation[originPt:ruptureI],
+    #                                x=smooth2[originPt:ruptureI])  # method='cobyla'
+    #     except Exception:
+    #         print("FJC failed")
+    #         skipPLT6 = False
+    #         sys.exc_clear()
+    #     if skipPLT6:
+    #         # x_off = result.params['a'].value
+    #         FJC_L0 = FJCresult.params['L0'].value
+    #         FJC_b = FJCresult.params['b'].value
+    #     else:
+    #         # x_off = 0.0
+    #         FJC_L0 = 0.0
+    #         FJC_b = 0.0
 
     # Add data to pandas DataFrame
-    df = pd.read_pickle(path.join(csvDir, "dummy.pkl"))
-    df.loc[x1] = [currentfile, 1000.0*abs(ruptureF), ruptureL, abs(retr1),
-                  WLC_P, WLC_L0, x_off]
-    df.to_pickle(path.join(csvDir, "dummy.pkl"))
+    # df = pd.read_pickle(path.join(csvDir, "dummy.pkl"))
+    # df.loc[x1] = [currentfile, 1000.0*abs(ruptureF), ruptureL, abs(retr1),
+    #               WLC_P, WLC_L0, x_off]
+    # df.to_pickle(path.join(csvDir, "dummy.pkl"))
 
     # Output Calculations
-    output = np.column_stack((retractZ, separation, retractD,
-                              k_L*(retractD - y_shift)/contactS, smooth11,
-                              smooth25, smooth55, smooth75))
+    output = np.column_stack((retractZ, separation, retractD, k_L*retractD,
+                              smooth1, smooth2, smooth3, smooth4))
     ruptureOut = np.column_stack((separation[originPt:ruptureI],
-                                  smooth25[originPt:ruptureI]))
+                                  smooth2[originPt:ruptureI]))
 
-    csvheader = ("z-position(nm),separation(nm),retractD,Force(nN),Force_11"
-                 "(nN),Force_25(nN),Force_55(nN),Force_75(nN),v=%d nm/s"
-                 % (abs(retr1)))
+    csvheader = ("z-position(nm),separation(nm),retractD,Force(nN),Force_%d"
+                 "(nN),Force_%d(nN),Force_%d(nN),Force_%d(nN),v=%d nm/s"
+                 % (smDict['smooth1'], smDict['smooth2'], smDict['smooth3'],
+                    smDict['smooth4'], abs(retr1)))
 
     ruptureH = "separation(nm),Force_25(nN)"
 
@@ -417,12 +424,12 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
                comments="", delimiter=',')
 
     # Figures
-    plotEverything(skipPLT5, originPt, ruptureI, smooth25, separation,
-                   baselineS, baselineI, contactS, contactI, result,
-                   timeCh1, distance, retractZ, retractD, VboundsXY, VboundsI)
-
-    plt.savefig(path.join(dstDir, currentpic))
-    plt.close()
+    # plotEverything(originPt, ruptureI, smooth2, separation, baselineS,
+    #                baselineI, contactS, contactI, timeCh1, distance, retractZ,
+    #                retractD, VboundsXY, VboundsI)
+    #
+    # plt.savefig(path.join(dstDir, currentpic))
+    # plt.close()
 
     print("Completed ", x1+1, " of ", len(dataFiles), " files.")
 
@@ -464,18 +471,22 @@ def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
     currentpic = rupImg[x]
     outputfile = rupOutput[x]
 
+    print('x = ' + str(x) + ' ' + currentfile + '  minGuess' + str(minGuess))
+
     dataFile = pd.read_csv(path.join(srcDir, currentfile))
 
-    # lidy of y-data columns from files
-    yDataColList = ['retractD', 'Force(nN)', 'Force_11(nN)', 'Force_25(nN)',
-                    'Force_55(nN)', 'Force_75(nN)']
+    # list of y-data columns from files
+    # ['z-position(nm)', 'separation(nm)', 'retractD', 'Force(nN)',
+    #  'Force_#1(nN)', 'Force_#2(nN)', 'Force_#3(nN)', 'Force_#4(nN)',
+    #  'v=309 nm/s']
+    yDataColList = dataFile.columns.values.tolist()[2:8]
 
-    yDataCol = yDataColList[4]
+    yDataCol = yDataColList[5]
 
     # Find min near minGuess, get row #'s of min and fitStart
     temp = abs(dataFile['z-position(nm)'] - minGuess)
     minGuessID = temp.idxmin()
-    minGuessRange = int(2.5 * len(dataFile['z-position(nm)']) / (
+    minGuessRange = int(7 * len(dataFile['z-position(nm)']) / (
         dataFile['z-position(nm)'].max() - dataFile['z-position(nm)'].min()))
     minID = dataFile[yDataCol][(minGuessID-minGuessRange):
                                (minGuessID+minGuessRange)].idxmin()
