@@ -11,7 +11,7 @@ def main():
     # Designate input and output directories.
 
     testFile = True
-    testMulti = False
+    testMulti = True
 
     if testFile:
         srcDir = R"F:\TEST\fullAnalysisTest"

@@ -166,8 +166,11 @@ def returnBoundaries(xdata, ydata, resolution):
     return VboundsXY, VboundsI
 
 
-def plotEverything(skipPLT5, originPt, ruptureI, smooth25, separation,
-                   baselineS, baselineI, contactS, contactI, result,
+# plotEverything(skipPLT5, originPt, ruptureI, smooth25, separation,
+#                baselineS, baselineI, contactS, contactI, result,
+#                timeCh1, distance, retractZ, retractD, VboundsXY, VboundsI):
+def plotEverything(originPt, baselineS, baselineI, contactS, contactI,
+                   retractZ_orig, retractD_orig, smooth3, separation,
                    timeCh1, distance, retractZ, retractD, VboundsXY, VboundsI):
     """ Info
     """
@@ -175,26 +178,26 @@ def plotEverything(skipPLT5, originPt, ruptureI, smooth25, separation,
     plt.figure(figsize=(20, 10))
     plt.subplot(2, 3, 1)
     plt.title("Z-position (nm)")
-    plt.plot(timeCh1, distance)
+    plt.plot(timeCh1, distance, ',')
     plt.plot(VboundsXY[:, 0], VboundsXY[:, 1], 'ro')
     plt.xlabel("Time (s)")
     plt.ylabel("Z-Position (V)")
 
     plt.subplot(2, 3, 2)
     plt.title("Fitted Retract")
-    plt.plot(retractZ, retractD)
-    plt.plot(retractZ, baselineS*retractZ + baselineI)
-    plt.plot(retractZ, contactS*retractZ + contactI)
+    plt.plot(retractZ_orig, retractD_orig, ',')
+    plt.plot(retractZ_orig, baselineS*retractZ_orig + baselineI)
+    plt.plot(retractZ_orig, contactS*retractZ_orig + contactI)
     plt.ylabel("Deflection (nm)")
     plt.xlabel("Z-position (nm)")
-    plt.axis([min(retractZ)-5, max(retractZ)+5, min(retractD)-10,
-              max(retractD)+10])
+    plt.axis([min(retractZ_orig)-5, max(retractZ_orig)+5,
+              min(retractD_orig)-10, max(retractD_orig)+10])
     plt.grid(True, which="both")
 
     plt.subplot(2, 3, 3)
     plt.title("Full Retract")
-    plt.plot(retractZ, retractD)
-    plt.plot(retractZ, retractD)
+    plt.plot(retractZ_orig, retractD_orig, ',')
+    plt.plot(retractZ, retractD, ',')
     plt.plot(0, 0, 'ro')
     plt.ylabel("Deflection (nm)")
     plt.xlabel("Z-position (nm)")
@@ -202,30 +205,51 @@ def plotEverything(skipPLT5, originPt, ruptureI, smooth25, separation,
 
     plt.subplot(2, 3, 4)
     plt.title("Retract")
-    plt.plot(retractZ, retractD)
+    plt.plot(retractZ, retractD, ',')
     plt.plot(0, 0, 'ro')
     plt.ylabel("Deflection (nm)")
     plt.xlabel("Z-position (nm)")
-    plt.axis([-150, 10, min(retractD)-5, 30])
+    plt.axis([-150, 10, min(retractD)-5, 20])
     plt.gca().xaxis.set_major_locator(plt.MultipleLocator(10))
     plt.grid(True, which="both")
 
-    if skipPLT5:
-        plt.subplot(2, 3, 5)
-        plt.title("Fit")
-        plt.plot(separation[originPt:ruptureI],
-                 smooth25[originPt:ruptureI], 'b.')
-        # plt.plot(separation[originPt:ruptureI], result.init_fit, 'k--')
-        plt.plot(separation[originPt:ruptureI], result.best_fit, 'r-')
-        plt.ylabel("Force (nN)")
-        plt.xlabel("Separation (nm)")
-    else:
-        plt.subplot(2, 3, 5)
-        plt.title("Fit")
-        plt.plot(separation[originPt:ruptureI],
-                 smooth25[originPt:ruptureI], 'b.')
-        plt.ylabel("Force (nN)")
-        plt.xlabel("Separation (nm)")
+    plt.subplot(2, 3, 5)
+    plt.title("Retract")
+    plt.plot(separation, retractD, ',')
+    plt.plot(0, 0, 'ro')
+    plt.ylabel("Deflection (nm)")
+    plt.xlabel("Separation (nm)")
+    plt.axis([-150, 10, min(retractD)-5, 20])
+    # plt.gca().xaxis.set_major_locator(plt.MultipleLocator(10))
+    plt.grid(True, which="both")
+
+    plt.subplot(2, 3, 6)
+    plt.title("Retract")
+    plt.plot(retractZ, smooth3, ',b')
+    plt.plot(separation, smooth3, ',k')
+    plt.plot(0, 0, 'ro')
+    plt.ylabel("Deflection (nm)")
+    plt.xlabel("Separation (nm)")
+    plt.axis([-150, 10, min(smooth3)-5, 20])
+    # plt.gca().xaxis.set_major_locator(plt.MultipleLocator(10))
+    plt.grid(True, which="both")
+
+    # if skipPLT5:
+    #     plt.subplot(2, 3, 5)
+    #     plt.title("Fit")
+    #     plt.plot(separation[originPt:ruptureI],
+    #              smooth25[originPt:ruptureI], 'b.')
+    #     # plt.plot(separation[originPt:ruptureI], result.init_fit, 'k--')
+    #     plt.plot(separation[originPt:ruptureI], result.best_fit, 'r-')
+    #     plt.ylabel("Force (nN)")
+    #     plt.xlabel("Separation (nm)")
+    # else:
+    #     plt.subplot(2, 3, 5)
+    #     plt.title("Fit")
+    #     plt.plot(separation[originPt:ruptureI],
+    #              smooth25[originPt:ruptureI], 'b.')
+    #     plt.ylabel("Force (nN)")
+    #     plt.xlabel("Separation (nm)")
 
     # if skipPLT6:
     #     plt.subplot(2, 3, 6)
@@ -252,7 +276,7 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     currentfile = dataFiles[x1]
     currentpic = dataImg[x1]
     outputfile = csvOutput[x1]
-    ruptureFile = csvRupture[x1]
+    # ruptureFile = csvRupture[x1]
 
     dataFile = np.genfromtxt(path.join(srcDir, currentfile), skip_header=1)
 
@@ -306,14 +330,26 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     retractZ = retractZ_orig - x_shift
     retractD = retractD_orig - y_shift
 
+    originPt = abs(retractZ).argmin()
     retractD = (retractD - baselineS * retractZ) / (contactS - baselineS)
+
+    retractD = (
+        retractD - np.average(retractD[np.argmin(abs(retractZ + 150.0)):
+                                       np.argmin(abs(retractZ + 200.0))]))
+
+    separation = retractZ - retractD
+
+    # for x in range(len(retractZ)):
+    #     if (retractZ[x]) < 0:
+    #         originPt = x
+    #         break
 
     # Linear Regression on approach/retract regions
     # __1 = slope ; __2 = intercept ; __3 = r_value ;
     # __4 = p_value ; __5 = std_error
     # Setup Speed
-    setup1, setup2, setup3, setup4, setup5 = stats.linregress(
-        timeCh1[0:VboundsI[0]], distance[0:VboundsI[0]])
+    setup1, setup2, setup3, setup4, setup5 = (
+        stats.linregress(timeCh1[0:VboundsI[0]], distance[0:VboundsI[0]]))
     # print "setup v =", abs(setup1*13*4.77), "nm/s"
 
     # Approach Speed
@@ -337,17 +373,11 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     smooth4 = smooth((k_L*retractD), smDict['smooth4'], 'hanning')
 
     # Find Rupture Force
-    ruptureI = np.argmin(retractD)
-    ruptureF = k_L*retractD[ruptureI]
-    ruptureL = (retractZ[ruptureI] - (retractD[ruptureI]))
-
-    for x in range(len(retractZ)):
-        if (retractZ[x]) < 0:
-            originPt = x
-            break
+    # ruptureI = np.argmin(retractD)
+    # ruptureF = k_L*retractD[ruptureI]
+    # ruptureL = (retractZ[ruptureI] - (retractD[ruptureI]))
 
     # Fit WLC model to rupture
-    separation = retractZ - retractD
 
     # result = 999.0
     # skipPLT5 = False
@@ -408,28 +438,28 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     # Output Calculations
     output = np.column_stack((retractZ, separation, retractD, k_L*retractD,
                               smooth1, smooth2, smooth3, smooth4))
-    ruptureOut = np.column_stack((separation[originPt:ruptureI],
-                                  smooth2[originPt:ruptureI]))
+    # ruptureOut = np.column_stack((separation[originPt:ruptureI],
+    #                               smooth2[originPt:ruptureI]))
 
     csvheader = ("z-position(nm),separation(nm),retractD,Force(nN),Force_%d"
                  "(nN),Force_%d(nN),Force_%d(nN),Force_%d(nN),v=%d nm/s"
                  % (smDict['smooth1'], smDict['smooth2'], smDict['smooth3'],
                     smDict['smooth4'], abs(retr1)))
 
-    ruptureH = "separation(nm),Force_25(nN)"
+    # ruptureH = "separation(nm),Force_25(nN)"
 
     np.savetxt(path.join(csvDir, outputfile), output, header=csvheader,
                comments="", delimiter=',')
-    np.savetxt(path.join(csvDir, ruptureFile), ruptureOut, header=ruptureH,
-               comments="", delimiter=',')
+    # np.savetxt(path.join(csvDir, ruptureFile), ruptureOut, header=ruptureH,
+    #            comments="", delimiter=',')
 
     # Figures
-    # plotEverything(originPt, ruptureI, smooth2, separation, baselineS,
-    #                baselineI, contactS, contactI, timeCh1, distance, retractZ,
-    #                retractD, VboundsXY, VboundsI)
-    #
-    # plt.savefig(path.join(dstDir, currentpic))
-    # plt.close()
+    plotEverything(originPt, baselineS, baselineI, contactS, contactI,
+                   retractZ_orig, retractD_orig, smooth3, separation,
+                   timeCh1, distance, retractZ, retractD, VboundsXY, VboundsI)
+    # plt.show()
+    plt.savefig(path.join(dstDir, currentpic))
+    plt.close()
 
     print("Completed ", x1+1, " of ", len(dataFiles), " files.")
 
