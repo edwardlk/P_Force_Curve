@@ -7,6 +7,7 @@ from lmfit import Model
 from os import path
 import pandas as pd
 from polymerModels import WLCmodelFull, WLCmodelNoXY, FJCmodel
+from collections import Counter
 
 
 def outputFiles(dataFiles, addon):
@@ -24,15 +25,12 @@ def fitOutputFiles(rupGuess, addon):
        extension, then adds a new extension. can handle multiple events in a
        single file. returns a list"""
     L = []
-    for x in range(len(rupGuess)):
-        temp = rupGuess.iloc[x, 0]
-        y = 1
-        L.append(temp[:-10] + 'C' + str(y) + addon)
-        if x < len(rupGuess)-1:
-            if rupGuess.iloc[x, 0] == rupGuess.iloc[x+1, 0]:
-                x += 1
-                y += 1
-                L.append(temp[:-10] + 'C' + str(y) + addon)
+    temp = rupGuess.iloc[:, 0].value_counts().to_dict()
+
+    for x in temp:
+        for y in range(temp[x]):
+            L.append(x[:-10] + 'C' + str(y+1) + addon)
+    L.sort()
     return L
 
 
@@ -166,9 +164,6 @@ def returnBoundaries(xdata, ydata, resolution):
     return VboundsXY, VboundsI
 
 
-# plotEverything(skipPLT5, originPt, ruptureI, smooth25, separation,
-#                baselineS, baselineI, contactS, contactI, result,
-#                timeCh1, distance, retractZ, retractD, VboundsXY, VboundsI):
 def plotEverything(originPt, baselineS, baselineI, contactS, contactI,
                    retractZ_orig, retractD_orig, smooth3, separation,
                    timeCh1, distance, retractZ, retractD, VboundsXY, VboundsI):
@@ -468,7 +463,7 @@ def fitGuessPlot(dataFile, xDataCol, yDataCol, minGuessID, minGuessRange,
                  fitStartID, minID):
     """
     """
-    plt.plot(dataFile[xDataCol], dataFile[yDataCol])
+    plt.plot(dataFile[xDataCol], dataFile[yDataCol], ',')
     plt.axis([-150, 10,
               min(dataFile[yDataCol])-5, min(dataFile[yDataCol])+10])
     plt.plot(dataFile[xDataCol].iloc[[minGuessID]],
@@ -482,9 +477,10 @@ def fitGuessPlot(dataFile, xDataCol, yDataCol, minGuessID, minGuessRange,
     plt.plot(dataFile[xDataCol].iloc[[fitStartID]],
              dataFile[yDataCol].iloc[[fitStartID]]-2, 'g|')
     plt.plot(dataFile[fitStartID:minID][xDataCol],
-             dataFile[fitStartID:minID][yDataCol], 'r')
+             dataFile[fitStartID:minID][yDataCol], ',r')
     plt.ylabel(yDataCol)
     plt.xlabel(xDataCol)
+    plt.grid(True, which="both")
 
 
 def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
@@ -531,9 +527,9 @@ def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
 
     plt.figure()
     plt.title(currentfile)
-    for x in range(6):
+    for x in range(5):
         plt.subplot(2, 3, x+1)
-        fitGuessPlot(dataFile, 'z-position(nm)', yDataColList[x], minGuessID,
+        fitGuessPlot(dataFile, 'z-position(nm)', yDataColList[x+1], minGuessID,
                      minGuessRange, fitStartID, minID)
     plt.savefig(path.join(imgDir, currentpic))
     # plt.show()
