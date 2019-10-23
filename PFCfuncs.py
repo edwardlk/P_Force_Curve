@@ -10,6 +10,14 @@ from polymerModels import WLCmodelFull, WLCmodelNoXY, FJCmodel
 from collections import Counter
 
 
+class setParam:
+    def __init__(self, paramName, valGuess, valMin, valMax):
+        self.name = paramName
+        self.guess = valGuess
+        self.min = valMin
+        self.max = valMax
+
+
 def outputFiles(dataFiles, addon):
     """Takes a list of file names, removes the extension, then adds a new
        extension. returns a list"""
@@ -480,7 +488,31 @@ def fitGuessPlot(dataFile, xDataCol, yDataCol, minGuessID, minGuessRange,
              dataFile[fitStartID:minID][yDataCol], ',r')
     plt.ylabel(yDataCol)
     plt.xlabel(xDataCol)
+    plt.gca().xaxis.set_major_locator(plt.MultipleLocator(25))
     plt.grid(True, which="both")
+
+
+def fitToModel(model, paramList, ydata, xdata):
+    """ Info
+    """
+    gmodel = Model(model)
+    print('parameter names: {}'.format(gmodel.param_names))
+    print('independent variables: {}'.format(gmodel.independent_vars))
+    for x in range(len(paramList)):
+        gmodel.set_param_hint(paramList[x].name, value=paramList[x].guess,
+                              min=paramList[x].min, max=paramList[x].max)
+    params = gmodel.make_params()
+    try:
+        result = gmodel.fit(ydata, x=xdata)  # method='cobyla'
+    except Exception:
+        skipPLT5 = False
+        # sys.exc_clear() - no longer in python3
+
+    out = []
+    for x in range(len(paramList)):
+        out.append(result.params[paramList[x.name]].value)
+
+    return out
 
 
 def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
@@ -522,15 +554,43 @@ def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
 
     # slice datafile
     fitData = dataFile[fitStartID:minID]
+    adj = int((minID - fitStartID) / 10)
+    print('adj = ' + str(adj))
+    fitData_flip  = -1 * fitData
+    fitData_flipMin = fitData_flip[:adj].agg(['mean'])
+
+    fitData_flipXY = fitData_flip.sub(fitData_flipMin.loc['mean'],
+                                      axis='columns')
+
+    # fit data
+    L_CG = max(fitData_flipXY['z-position(nm)'])
+    gmodel = Model(WLCmodelNoXY)
+    gmodel.set_param_hint('L_C', value=L_CG*1.5, min=L_CG, max=L_CG*2)
+    gmodel.set_param_hint('L_P', value=0.38, min=0, max=100)
+    params = gmodel.make_params()
+
+    result = gmodel.fit(fitData_flipXY[yDataColList[4]], params,
+                        x=fitData_flipXY['z-position(nm)'])
+
+    print(result.fit_report())
+    plt.plot(fitData_flip['z-position(nm)'], fitData_flipXY[yDataColList[4]], 'bo')
+    # plt.plot(fitData_flip['z-position(nm)'], result.init_fit, 'k--', label='initial fit')
+    plt.plot(fitData_flip['z-position(nm)'], result.best_fit, 'r-', label='best fit')
+    plt.legend(loc='best')
+    plt.show()
 
     # fit, may need to rescale data
-
     plt.figure()
     plt.title(currentfile)
     for x in range(5):
         plt.subplot(2, 3, x+1)
         fitGuessPlot(dataFile, 'z-position(nm)', yDataColList[x+1], minGuessID,
                      minGuessRange, fitStartID, minID)
-    plt.savefig(path.join(imgDir, currentpic))
+    plt.subplot(2, 3, 6)
+    plt.plot(fitData_flip['z-position(nm)'], fitData_flip[yDataColList[4]])
+    plt.plot(fitData_flip['z-position(nm)'], fitData_flipXY[yDataColList[4]])
+    plt.plot(fitData_flipXY['z-position(nm)'], fitData_flipXY[yDataColList[4]])
+
+    # plt.savefig(path.join(imgDir, currentpic))
     # plt.show()
     plt.close()
