@@ -21,8 +21,8 @@ def main():
 
         info = ("Please select the folder that contains the data files "
                 "you wish to analyze.")
-        srcDir = filedialog.askdirectory(parent=root, initialdir="/", title=info)
-
+        srcDir = filedialog.askdirectory(parent=root, initialdir="/",
+                                         title=info)
         info2 = ("Please select the file that contains the locations of the "
                  "force rupture events you wish to analyze.")
         rupFileLoc = filedialog.askopenfilename(parent=root, initialdir=srcDir,
@@ -69,15 +69,16 @@ def main():
                                          'x_off'])
     df.to_pickle(path.join(csvDir, "dummy.pkl"))
 
-    for x in range(len(rupGuess)):
-        fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
-                    rupOutput)
-
-    # pool = mp.Pool(processes=5)
-    # for x in range(len(dataFiles)):
-    #     pool.apply_async(fitAnalysis, args=(x, dataFiles,))
-    # pool.close()
-    # pool.join()
+    if testing:
+        for x in range(len(rupGuess)):
+            fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
+                        rupOutput)
+    else:
+        pool = mp.Pool(processes=5)
+        for x in range(len(dataFiles)):
+            pool.apply_async(fitAnalysis, args=(x, dataFiles,))
+        pool.close()
+        pool.join()
 
     df = pd.read_pickle(path.join(csvDir, "dummy.pkl"))
     df.to_excel(path.join(csvDir, 'dataframe.xlsx'), sheet_name='Sheet1')

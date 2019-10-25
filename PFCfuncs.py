@@ -392,8 +392,9 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     #     gmod.set_param_hint('b', value=0.0, min=-10.0, max=10.0)
     #     params = gmod.make_params()
     #     try:
+    #         # method='cobyla'
     #         result = gmod.fit(smooth2[originPt:ruptureI],
-    #                           x=separation[originPt:ruptureI])  # method='cobyla'
+    #                           x=separation[originPt:ruptureI])
     #     except Exception:
     #         skipPLT5 = False
     #         # sys.exc_clear() - no longer in python3
@@ -417,8 +418,9 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     #     # FJCmod.set_param_hint('a', value=0.0, min=-5.0, max=5.0)
     #     FJCparams = FJCmod.make_params()
     #     try:
+    #         # method='cobyla'
     #         FJCresult = FJCmod.fit(separation[originPt:ruptureI],
-    #                                x=smooth2[originPt:ruptureI])  # method='cobyla'
+    #                                x=smooth2[originPt:ruptureI])
     #     except Exception:
     #         print("FJC failed")
     #         skipPLT6 = False
@@ -500,30 +502,13 @@ def fitToWLCmodel(ydata, xdata):
     gmodel.set_param_hint('L_C', value=L_CG*1.5, min=L_CG, max=L_CG*2)
     gmodel.set_param_hint('L_P', value=0.38, min=0, max=100)
     params = gmodel.make_params()
-
     result = gmodel.fit(ydata, params, x=xdata)
-
-    plt.plot(xdata, ydata, 'b,')
-    plt.plot(xdata, result.best_fit, 'r-', label='best fit')
-    plt.legend(loc='best')
-    plt.show()
-    # gmodel = Model(model)
+    # plt.plot(xdata, ydata, 'b,')
+    # plt.plot(xdata, result.best_fit, 'r-', label='best fit')
+    # plt.legend(loc='best')
+    # plt.show()
     # print('parameter names: {}'.format(gmodel.param_names))
     # print('independent variables: {}'.format(gmodel.independent_vars))
-    # for x in range(len(paramList)):
-    #     gmodel.set_param_hint(paramList[x].name, value=paramList[x].guess,
-    #                           min=paramList[x].min, max=paramList[x].max)
-    # params = gmodel.make_params()
-    # try:
-    #     result = gmodel.fit(ydata, x=xdata)  # method='cobyla'
-    # except Exception:
-    #     skipPLT5 = False
-    #     # sys.exc_clear() - no longer in python3
-    #
-    # out = []
-    # for x in range(len(paramList)):
-    #     out.append(result.params[paramList[x.name]].value)
-
     return result
 
 
@@ -568,16 +553,70 @@ def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
     fitData = dataFile[fitStartID:minID]
     adj = int((minID - fitStartID) / 10)
     print('adj = ' + str(adj))
-    fitData_flip  = -1 * fitData
+    fitData_flip = -1 * fitData
     fitData_flipMin = fitData_flip[:adj].agg(['mean'])
 
     fitData_flipXY = fitData_flip.sub(fitData_flipMin.loc['mean'],
                                       axis='columns')
 
     # fit data
-    fitToWLCmodel(fitData_flip[yDataColList[4]], fitData_flip['z-position(nm)'])
-    fitToWLCmodel(fitData_flipXY[yDataColList[4]], fitData_flip['z-position(nm)'])
-    fitToWLCmodel(fitData_flipXY[yDataColList[4]], fitData_flipXY['z-position(nm)'])
+    col_list = ['file', 'model#', 'rupture force (pN)', 'location',
+                'fit_method', 'function_evals', 'data_pts', 'variables',
+                'chi-squared', 'r_chi-squared', 'Akaike_ic', 'Bayesian_ic',
+                'L_P', 'L_P-err', 'L_C', 'L_C-err']
+    fillData = np.array([np.arange(len(rupGuess*3))]*16).T
+    fit_df = pd.DataFrame(fillData, columns=col_list)
+
+    model1 = fitToWLCmodel(fitData_flip[yDataColList[4]], fitData_flip['z-position(nm)'])
+    fit_df.iloc[3*x] = [currentfile, 1, fitData_flip[yDataColList[4]].max(), fitData_flip['z-position(nm)'].max(),
+                        model1.method, model1.nfev, model1.ndata, model1.nvarys,
+                        model1.chisqr, model1.redchi, model1.aic, model1.bic,
+                        model1.best_values['L_P'], model1.params['L_P'].stderr, model1.best_values['L_C'], model1.params['L_C'].stderr]
+    model2 = fitToWLCmodel(fitData_flipXY[yDataColList[4]], fitData_flip['z-position(nm)'])
+    fit_df.iloc[3*x+1] = [currentfile, 2, fitData_flip[yDataColList[4]].max(), fitData_flip['z-position(nm)'].max(),
+                        model2.method, model1.nfev, model1.ndata, model1.nvarys,
+                        model2.chisqr, model1.redchi, model1.aic, model1.bic,
+                        model2.best_values['L_P'], model2.params['L_P'].stderr, model2.best_values['L_C'], model1.params['L_C'].stderr]
+    model3 = fitToWLCmodel(fitData_flipXY[yDataColList[4]], fitData_flipXY['z-position(nm)'])
+    fit_df.iloc[3*x+2] = [currentfile, 3, fitData_flip[yDataColList[4]].max(), fitData_flip['z-position(nm)'].max(),
+                        model1.method, model1.nfev, model1.ndata, model1.nvarys,
+                        model1.chisqr, model1.redchi, model1.aic, model1.bic,
+                        model3.best_values['L_P'], model3.params['L_P'].stderr, model3.best_values['L_C'], model1.params['L_C'].stderr]
+    # print(model1.fit_report())
+    # print(model1.best_values)
+    # print(model1.aic)
+    # print(model1.bic)
+    # print(model1.chisqr)
+    # print(model1.method)
+    # print(model1.ndata)
+    # print(model1.nfev)
+    # print(model1.nfree)
+    # print(model1.nvarys)
+    # print(model1.params['L_P'].stderr)
+    # print(model1.redchi)
+    # print(model2.fit_report())
+    # print(model2.best_values)
+    # print(model3.fit_report())
+    # print(model3.best_values)
+
+    print(fit_df)
+
+    plt.figure()
+    plt.title(currentfile)
+    plt.subplot(1, 3, 1)
+    plt.plot(fitData_flip['z-position(nm)'], fitData_flip[yDataColList[4]], 'b,')
+    plt.plot(fitData_flip['z-position(nm)'], model1.best_fit, 'r-', label='best fit')
+    plt.legend(loc='best')
+    plt.subplot(1, 3, 2)
+    plt.plot(fitData_flip['z-position(nm)'], fitData_flipXY[yDataColList[4]], 'b,')
+    plt.plot(fitData_flip['z-position(nm)'], model2.best_fit, 'r-', label='best fit')
+    plt.legend(loc='best')
+    plt.subplot(1, 3, 3)
+    plt.plot(fitData_flipXY['z-position(nm)'], fitData_flipXY[yDataColList[4]], 'b,')
+    plt.plot(fitData_flipXY['z-position(nm)'], model3.best_fit, 'r-', label='best fit')
+    plt.legend(loc='best')
+    plt.show()
+    plt.close()
 
     # L_CG = max(fitData_flip['z-position(nm)'])
     # gmodel = Model(WLCmodelNoXY)
@@ -594,17 +633,16 @@ def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
     # plt.show()
 
     # fit, may need to rescale data
-    plt.figure()
-    plt.title(currentfile)
-    for x in range(5):
-        plt.subplot(2, 3, x+1)
-        fitGuessPlot(dataFile, 'z-position(nm)', yDataColList[x+1], minGuessID,
-                     minGuessRange, fitStartID, minID)
-    plt.subplot(2, 3, 6)
-    plt.plot(fitData_flip['z-position(nm)'], fitData_flip[yDataColList[4]])
-    plt.plot(fitData_flip['z-position(nm)'], fitData_flipXY[yDataColList[4]])
-    plt.plot(fitData_flipXY['z-position(nm)'], fitData_flipXY[yDataColList[4]])
-
+    # plt.figure()
+    # plt.title(currentfile)
+    # for x in range(5):
+    #     plt.subplot(2, 3, x+1)
+    #     fitGuessPlot(dataFile, 'z-position(nm)', yDataColList[x+1], minGuessID,
+    #                  minGuessRange, fitStartID, minID)
+    # plt.subplot(2, 3, 6)
+    # plt.plot(fitData_flip['z-position(nm)'], fitData_flip[yDataColList[4]])
+    # plt.plot(fitData_flip['z-position(nm)'], fitData_flipXY[yDataColList[4]])
+    # plt.plot(fitData_flipXY['z-position(nm)'], fitData_flipXY[yDataColList[4]])
     # plt.savefig(path.join(imgDir, currentpic))
     # plt.show()
     plt.close()

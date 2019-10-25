@@ -1,7 +1,5 @@
 import time
 from tkinter import Tk, filedialog
-import numpy as np
-import pandas as pd
 import multiprocessing as mp
 from os import path, listdir, makedirs
 from PFCfuncs import outputFiles, mainAnalysis
