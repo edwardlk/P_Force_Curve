@@ -23,7 +23,7 @@ def FJCmodel(x, L0, b):
 
 
 # # Fit WLC model to rupture
-# def WLCfit(retractZ, retractD, smooth25, y_shift, x_shift, originPt, ruptureI):
+# def WLCfit(retractZ, retractD, smooth25, y_shift, x_shift,originPt,ruptureI):
 #     """Need to determine what gmod.fit returns, """
 #     separation = (retractZ - (retractD - y_shift) - x_shift)
 #
@@ -53,7 +53,7 @@ def FJCmodel(x, L0, b):
 #
 #
 # # Fit FJC model to rupture
-# def FJCfit(retractZ, retractD, smooth25, y_shift, x_shift, originPt, ruptureI):
+# def FJCfit(retractZ, retractD, smooth25, y_shift, x_shift,originPt,ruptureI):
 #     """
 #     """
 #     separation = (retractZ - (retractD - y_shift) - x_shift)
@@ -66,7 +66,7 @@ def FJCmodel(x, L0, b):
 #     FJCparams = FJCmod.make_params()
 #     try:
 #         FJCresult = FJCmod.fit(separation[originPt:ruptureI],
-#                                x=smooth25[originPt:ruptureI])  # method='cobyla'
+#                                x=smooth25[originPt:ruptureI])#method='cobyla'
 #     except Exception:
 #         print("FJC failed")
 #         skipPLT6 = False

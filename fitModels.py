@@ -1,6 +1,5 @@
 import time
 from tkinter import Tk, filedialog
-import numpy as np
 import pandas as pd
 import multiprocessing as mp
 from os import path, listdir, makedirs
@@ -57,17 +56,14 @@ def main():
     rupImg = fitOutputFiles(rupGuess, '-fit.png')
     rupOutput = fitOutputFiles(rupGuess, '-fit.csv')
 
-    print(rupImg)
-
-    print('rupGuess = ')
-    print(rupGuess)
-
     # Pandas DataFrame to store measurements
-    fillData = np.array([np.arange(len(rupGuess))]*6).T
-    df = pd.DataFrame(fillData, columns=['file', 'rupture force (pN)',
-                                         'location', 'WLC-P', 'WLC-L0',
-                                         'x_off'])
-    df.to_pickle(path.join(csvDir, "dummy.pkl"))
+    col_list = ['file', 'model#', 'v(nm/s)', 'rupture force (pN)', 'location',
+                'fit_method', 'function_evals', 'data_pts', 'variables',
+                'chi-squared', 'r_chi-squared', 'Akaike_ic', 'Bayesian_ic',
+                'L_P', 'L_P-err', 'L_C', 'L_C-err']
+    # fillData = np.array([np.arange(len(rupGuess)*3)]*16).T
+    fit_df = pd.DataFrame(columns=col_list)
+    fit_df.to_pickle(path.join(csvDir, "dummy.pkl"))
 
     if testing:
         for x in range(len(rupGuess)):
