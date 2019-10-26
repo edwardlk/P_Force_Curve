@@ -11,7 +11,8 @@ from polymerModels import WLCmodelNoXY  # , FJCmodel
 
 def outputFiles(dataFiles, addon):
     """Takes a list of file names, removes the extension, then adds a new
-       extension. returns a list"""
+       extension.
+       Returns a list"""
     L = []
     for x in range(len(dataFiles)):
         temp = dataFiles[x]
@@ -21,8 +22,12 @@ def outputFiles(dataFiles, addon):
 
 def fitOutputFiles(rupGuess, addon):
     """Takes a dataframe with list of file names in Col1, removes the
-       extension, then adds a new extension. can handle multiple events in a
-       single file. returns a list"""
+       extension, then adds a new extension. Can handle multiple events in a
+       single file.
+       Returns a list"""
+    if not isinstance(rupGuess, pd.DataFrame):
+        raise ValueError('fitOutputFiles only accepts dataframe')
+
     L = []
     temp = rupGuess.iloc[:, 0].value_counts().to_dict()
 
@@ -34,8 +39,9 @@ def fitOutputFiles(rupGuess, addon):
 
 
 def smooth(x, window_len, window):
-    """smooths an numpy array, using a specified window length and
-       windowing function. Returns an ndarray."""
+    """Smooths an numpy array, using a specified window length and windowing
+       function.
+       Returns an ndarray."""
     if x.ndim != 1:
         raise ValueError('smooth only accepts 1-D array')
     if x.size < window_len:
@@ -118,9 +124,9 @@ def returnBoundaries(xdata, ydata, resolution):
     """Determines the bounds of the the different parts of the force spectrum
        using the piezo voltage (ydata) and the time series (xdata).
        Assumes the following characteristics: negative slope retract, zero
-       slope hold, positive slope approach curve, zero slope hold, negative
-       slope retract, zero slope hold
-    """
+       slope hold, positive slope approach, zero slope hold, negative
+       slope retract, zero slope hold.
+       Returns 2 ndarrays"""
     numPoints = len(ydata)
     points = resolution
 
@@ -228,40 +234,6 @@ def plotEverything(originPt, baselineS, baselineI, contactS, contactI,
     # plt.gca().xaxis.set_major_locator(plt.MultipleLocator(10))
     plt.grid(True, which="both")
 
-    # if skipPLT5:
-    #     plt.subplot(2, 3, 5)
-    #     plt.title("Fit")
-    #     plt.plot(separation[originPt:ruptureI],
-    #              smooth25[originPt:ruptureI], 'b.')
-    #     # plt.plot(separation[originPt:ruptureI], result.init_fit, 'k--')
-    #     plt.plot(separation[originPt:ruptureI], result.best_fit, 'r-')
-    #     plt.ylabel("Force (nN)")
-    #     plt.xlabel("Separation (nm)")
-    # else:
-    #     plt.subplot(2, 3, 5)
-    #     plt.title("Fit")
-    #     plt.plot(separation[originPt:ruptureI],
-    #              smooth25[originPt:ruptureI], 'b.')
-    #     plt.ylabel("Force (nN)")
-    #     plt.xlabel("Separation (nm)")
-
-    # if skipPLT6:
-    #     plt.subplot(2, 3, 6)
-    #     plt.title("Fit")
-    #     plt.plot(separation[originPt:ruptureI],
-    #              smooth25[originPt:ruptureI], 'b.')
-    #     # plt.plot(separation[originPt:ruptureI], FJCresult.init_fit, 'k--')
-    #     plt.plot(FJCresult.best_fit, smooth25[originPt:ruptureI], 'r-')
-    #     plt.ylabel("Force (nN)")
-    #     plt.xlabel("Separation (nm)")
-    # else:
-    #     plt.subplot(2, 3, 6)
-    #     plt.title("Fit")
-    #     plt.plot(separation[originPt:ruptureI],
-    #              smooth25[originPt:ruptureI], 'b.')
-    #     plt.ylabel("Force (nN)")
-    #     plt.xlabel("Separation (nm)")
-
 
 def mainAnalysis(x1, srcDir, dstDir, csvDir,
                  dataFiles, dataImg, csvOutput, csvRupture):
@@ -333,11 +305,6 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
 
     separation = retractZ - retractD
 
-    # for x in range(len(retractZ)):
-    #     if (retractZ[x]) < 0:
-    #         originPt = x
-    #         break
-
     # Linear Regression on approach/retract regions
     # __1 = slope ; __2 = intercept ; __3 = r_value ;
     # __4 = p_value ; __5 = std_error
@@ -366,71 +333,6 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     smooth3 = smooth((k_L*retractD), smDict['smooth3'], 'hanning')
     smooth4 = smooth((k_L*retractD), smDict['smooth4'], 'hanning')
 
-    # Find Rupture Force
-    # ruptureI = np.argmin(retractD)
-    # ruptureF = k_L*retractD[ruptureI]
-    # ruptureL = (retractZ[ruptureI] - (retractD[ruptureI]))
-
-    # Fit WLC model to rupture
-
-    # result = 999.0
-    # skipPLT5 = False
-    # if skipPLT5:
-    #     gmod = Model(WLCmodelFull)
-    #     gmod.set_param_hint('L_C', value=-60.0)
-    #     gmod.set_param_hint('L_P', value=-0.38, min=-0.42, max=-0.34)
-    #     gmod.set_param_hint('a', value=0.0, min=-10.0, max=10.0)
-    #     gmod.set_param_hint('b', value=0.0, min=-10.0, max=10.0)
-    #     params = gmod.make_params()
-    #     try:
-    #         # method='cobyla'
-    #         result = gmod.fit(smooth2[originPt:ruptureI],
-    #                           x=separation[originPt:ruptureI])
-    #     except Exception:
-    #         skipPLT5 = False
-    #         # sys.exc_clear() - no longer in python3
-    #     if skipPLT5:
-    #         x_off = result.params['a'].value
-    #         y_off = result.params['b'].value
-    #         WLC_P = result.params['L_P'].value
-    #         WLC_L0 = result.params['L_C'].value
-    #     else:
-    #         x_off = 0.0
-    #         y_off = 0.0
-    #         WLC_P = 0.0
-    #         WLC_L0 = 0.0
-
-    # # Fit FJC model to rupture
-    # skipPLT6 = False
-    # if skipPLT6:
-    #     FJCmod = Model(FJCmodel)
-    #     FJCmod.set_param_hint('L0')  # , value = -56.0)
-    #     FJCmod.set_param_hint('b')  # , value = -3.8, min=-4.0, max=-3.6)
-    #     # FJCmod.set_param_hint('a', value=0.0, min=-5.0, max=5.0)
-    #     FJCparams = FJCmod.make_params()
-    #     try:
-    #         # method='cobyla'
-    #         FJCresult = FJCmod.fit(separation[originPt:ruptureI],
-    #                                x=smooth2[originPt:ruptureI])
-    #     except Exception:
-    #         print("FJC failed")
-    #         skipPLT6 = False
-    #         sys.exc_clear()
-    #     if skipPLT6:
-    #         # x_off = result.params['a'].value
-    #         FJC_L0 = FJCresult.params['L0'].value
-    #         FJC_b = FJCresult.params['b'].value
-    #     else:
-    #         # x_off = 0.0
-    #         FJC_L0 = 0.0
-    #         FJC_b = 0.0
-
-    # Add data to pandas DataFrame
-    # df = pd.read_pickle(path.join(csvDir, "dummy.pkl"))
-    # df.loc[x1] = [currentfile, 1000.0*abs(ruptureF), ruptureL, abs(retr1),
-    #               WLC_P, WLC_L0, x_off]
-    # df.to_pickle(path.join(csvDir, "dummy.pkl"))
-
     # Output Calculations
     output = np.column_stack((retractZ, separation, retractD, k_L*retractD,
                               smooth1, smooth2, smooth3, smooth4))
@@ -446,8 +348,6 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
 
     np.savetxt(path.join(csvDir, outputfile), output, header=csvheader,
                comments="", delimiter=',')
-    # np.savetxt(path.join(csvDir, ruptureFile), ruptureOut, header=ruptureH,
-    #            comments="", delimiter=',')
 
     # Figures
     plotEverything(originPt, baselineS, baselineI, contactS, contactI,
@@ -563,12 +463,6 @@ def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
                                       axis='columns')
 
     # fit data
-    # col_list = ['file', 'model#', 'rupture force (pN)', 'location',
-    #             'fit_method', 'function_evals', 'data_pts', 'variables',
-    #             'chi-squared', 'r_chi-squared', 'Akaike_ic', 'Bayesian_ic',
-    #             'L_P', 'L_P-err', 'L_C', 'L_C-err']
-    # fillData = np.array([np.arange(len(rupGuess)*3)]*16).T
-    # fit_df = pd.DataFrame(fillData, columns=col_list)
     fit_df = pd.read_pickle(path.join(csvDir, "dummy.pkl"))
 
     model1 = fitToWLCmodel(fitData_flip[yDataColList[4]],
@@ -617,36 +511,5 @@ def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
               0, max(fitData_flipXY[yDataColList[4]])*1.1])
     plt.legend(loc='best')
     plt.savefig(path.join(imgDir, currentpic))
-    # plt.show()
-    plt.close()
-
-    # L_CG = max(fitData_flip['z-position(nm)'])
-    # gmodel = Model(WLCmodelNoXY)
-    # gmodel.set_param_hint('L_C', value=L_CG*1.5, min=L_CG, max=L_CG*2)
-    # gmodel.set_param_hint('L_P', value=0.38, min=0, max=100)
-    # params = gmodel.make_params()
-    #
-    # result = gmodel.fit(fitData_flipXY[yDataColList[4]], params,
-    #                     x=fitData_flip['z-position(nm)'])
-    #
-    # plt.plot(fitData_flip['z-position(nm)'],
-    #          fitData_flipXY[yDataColList[4]], 'bo')
-    # plt.plot(fitData_flip['z-position(nm)'],
-    #          result.best_fit, 'r-', label='best fit')
-    # plt.legend(loc='best')
-    # plt.show()
-
-    # fit, may need to rescale data
-    # plt.figure()
-    # plt.title(currentfile)
-    # for x in range(5):
-    #     plt.subplot(2, 3, x+1)
-    #     fitGuessPlot(dataFile, 'z-position(nm)', yDataColList[x+1],
-    #                  minGuessID, minGuessRange, fitStartID, minID)
-    # plt.subplot(2, 3, 6)
-    # plt.plot(fitData_flip['z-position(nm)'], fitData_flip[yDataColList[4]])
-    # plt.plot(fitData_flip['z-position(nm)'], fitData_flipXY[yDataColList[4]])
-    # plt.plot(fitData_flipXY['z-position(nm)'],fitData_flipXY[yDataColList[4]])
-    # plt.savefig(path.join(imgDir, currentpic))
     # plt.show()
     plt.close()
