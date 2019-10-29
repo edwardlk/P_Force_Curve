@@ -96,22 +96,22 @@ def plotFits(currentfile, outputfile, fitData, xdata, xdataXY, ydata, ydataXY,
              model1fit, model2fit, model3fit):
     """Info
     """
-    plt.figure(figsize=(18, 4)).suptitle(outputfile[:-4] + '  '
+    plt.figure(figsize=(6, 18)).suptitle(outputfile[:-4] + '  '
                                          + fitData.columns[-1])
     plt.title(currentfile)
-    plt.subplot(1, 3, 1)
+    plt.subplot(3, 1, 1)
     plt.plot(xdata, ydata, 'b,')
     plt.plot(xdata, model1fit, 'r-', label='best fit')
     plt.axis([0, max(xdata)+5, 0, max(ydata)*1.1])
     plt.legend(loc='best')
 
-    plt.subplot(1, 3, 2)
+    plt.subplot(3, 1, 2)
     plt.plot(xdata, ydataXY, 'b,')
     plt.plot(xdata, model2fit, 'r-', label='best fit')
     plt.axis([0, max(xdata)+5, 0, max(ydataXY)*1.1])
     plt.legend(loc='best')
 
-    plt.subplot(1, 3, 3)
+    plt.subplot(3, 1, 3)
     plt.plot(xdataXY, ydataXY, 'b,')
     plt.plot(xdataXY, model3fit, 'r-', label='best fit')
     plt.axis([0, max(xdataXY)+5, 0, max(ydataXY)*1.1])
