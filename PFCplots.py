@@ -93,26 +93,44 @@ def fitGuessPlot(dataFile, xDataCol, yDataCol, minGuessID, minGuessRange,
 
 
 def plotFits(currentfile, outputfile, fitData, xdata, xdataXY, ydata, ydataXY,
-             model1fit, model2fit, model3fit):
+             model1fit, model2fit, model3fit, modelB1fit, modelB2fit, modelB3fit):
     """Info
     """
-    plt.figure(figsize=(6, 18)).suptitle(outputfile[:-4] + '  '
+    plt.figure(figsize=(12, 16)).suptitle(outputfile[:-4] + '  '
                                          + fitData.columns[-1])
     plt.title(currentfile)
-    plt.subplot(3, 1, 1)
+    plt.subplot(3, 2, 1)
     plt.plot(xdata, ydata, 'b,')
     plt.plot(xdata, model1fit, 'r-', label='best fit')
     plt.axis([0, max(xdata)+5, 0, max(ydata)*1.1])
     plt.legend(loc='best')
 
-    plt.subplot(3, 1, 2)
+    plt.subplot(3, 2, 3)
     plt.plot(xdata, ydataXY, 'b,')
     plt.plot(xdata, model2fit, 'r-', label='best fit')
     plt.axis([0, max(xdata)+5, 0, max(ydataXY)*1.1])
     plt.legend(loc='best')
 
-    plt.subplot(3, 1, 3)
+    plt.subplot(3, 2, 5)
     plt.plot(xdataXY, ydataXY, 'b,')
     plt.plot(xdataXY, model3fit, 'r-', label='best fit')
+    plt.axis([0, max(xdataXY)+5, 0, max(ydataXY)*1.1])
+    plt.legend(loc='best')
+
+    plt.subplot(3, 2, 2)
+    plt.plot(xdata, ydata, 'b,')
+    plt.plot(xdata, modelB1fit, 'r-', label='best fit')
+    plt.axis([0, max(xdata)+5, 0, max(ydata)*1.1])
+    plt.legend(loc='best')
+
+    plt.subplot(3, 2, 4)
+    plt.plot(xdata, ydataXY, 'b,')
+    plt.plot(xdata, modelB2fit, 'r-', label='best fit')
+    plt.axis([0, max(xdata)+5, 0, max(ydataXY)*1.1])
+    plt.legend(loc='best')
+
+    plt.subplot(3, 2, 6)
+    plt.plot(xdataXY, ydataXY, 'b,')
+    plt.plot(xdataXY, modelB3fit, 'r-', label='best fit')
     plt.axis([0, max(xdataXY)+5, 0, max(ydataXY)*1.1])
     plt.legend(loc='best')

@@ -15,6 +15,12 @@ def WLCmodelNoXY(x, L_P, L_C):
     return (kBT/L_P) * (0.25*(1 - (x / L_C))**(-2) - 0.25 + (x / L_C))
 
 
+def WLCmodelImproved(x, L_P, L_C):
+    """Worm-like chain model
+    """
+    kBT = 4.114  # pN nm
+    return (kBT/L_P) * (0.25*(1 - (x / L_C))**(-2) - 0.25 + (x / L_C) - 0.8 * (x / L_C)**(2.15))
+
 def FJCmodel(x, L0, b):
     """
     """
