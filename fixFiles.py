@@ -79,7 +79,7 @@ def main():
     pool.join()
     print("Finished analyzing", path.split(srcDir)[1])
     print('It took {:.2f} seconds to analyze %d files.'.format(
-          time.time()-start) % (len(dataFiles)))
+          time.time()-start, len(dataFiles)))
 
 
 if __name__ == '__main__':

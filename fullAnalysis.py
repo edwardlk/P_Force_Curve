@@ -8,7 +8,7 @@ from PFCfuncs import outputFiles, mainAnalysis
 def main():
     # Designate input and output directories.
 
-    testFile = True
+    testFile = False
     testMulti = True
 
     if testFile:

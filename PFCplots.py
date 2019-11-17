@@ -1,13 +1,16 @@
 import matplotlib.pyplot as plt
 
 
-def plotEverything(originPt, baselineS, baselineI, contactS, contactI,
-                   retractZ_orig, retractD_orig, smooth3, separation,
-                   timeCh1, distance, retractZ, retractD, VboundsXY, VboundsI):
+def plotEverything(currentpic, v, originPt, baselineS, baselineI,
+                   contactS, contactI, retractZ_orig, retractD_orig, smooth3,
+                   separation, timeCh1, distance, retractZ, retractD,
+                   VboundsXY, VboundsI):
     """ Info
     """
 
     plt.figure(figsize=(20, 10))
+    plt.suptitle('{} - v = {:.1f} m/s'.format(currentpic[:-11], v),
+                 fontsize=24)
     plt.subplot(2, 3, 1)
     plt.title("Z-position (nm)")
     plt.plot(timeCh1, distance, ',')
@@ -41,7 +44,7 @@ def plotEverything(originPt, baselineS, baselineI, contactS, contactI,
     plt.plot(0, 0, 'ro')
     plt.ylabel("Deflection (nm)")
     plt.xlabel("Z-position (nm)")
-    plt.axis([-150, 10, min(retractD)-5, 20])
+    # plt.axis([-150, 10, min(retractD)-5, 20])
     plt.gca().xaxis.set_major_locator(plt.MultipleLocator(10))
     plt.grid(True, which="both")
 
@@ -51,7 +54,7 @@ def plotEverything(originPt, baselineS, baselineI, contactS, contactI,
     plt.plot(0, 0, 'ro')
     plt.ylabel("Deflection (nm)")
     plt.xlabel("Separation (nm)")
-    plt.axis([-150, 10, min(retractD)-5, 20])
+    # plt.axis([-150, 10, min(retractD)-5, 20])
     # plt.gca().xaxis.set_major_locator(plt.MultipleLocator(10))
     plt.grid(True, which="both")
 
@@ -62,7 +65,7 @@ def plotEverything(originPt, baselineS, baselineI, contactS, contactI,
     plt.plot(0, 0, 'ro')
     plt.ylabel("Deflection (nm)")
     plt.xlabel("Separation (nm)")
-    plt.axis([-150, 10, min(smooth3)-5, 20])
+    # plt.axis([-150, 10, min(smooth3)-5, 20])
     # plt.gca().xaxis.set_major_locator(plt.MultipleLocator(10))
     plt.grid(True, which="both")
 

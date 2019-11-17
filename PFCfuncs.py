@@ -76,7 +76,7 @@ def findBndPtsExact(points, x_points, int_points):
 
     slopeSwitch = True
     bndCnt = 0
-    for x in range(points):
+    for x in range(1, points):
         if slopeSwitch:
             if int_points[x] == 0:
                 bound_pts[bndCnt, 0] = x_points[x]
@@ -102,7 +102,7 @@ def findBndPtsNear(points, x_points, int_points):
 
     slopeSwitch = True
     bndCnt = 0
-    for x in range(points):
+    for x in range(1, points):
         if slopeSwitch:
             if int_points[x] < 0.2:
                 bound_pts[bndCnt, 0] = x_points[x]
@@ -147,7 +147,15 @@ def returnBoundaries(xdata, ydata, resolution):
             xdata[low:high], ydata[low:high])
         x_points[x] = np.mean(xdata[low:high])
         y_points[x] = slope
-        int_points[x] = int(slope)
+        int_points[x] = round(slope*2)/2
+
+    # plt.figure()
+    # plt.plot(x_points, y_points)
+    #
+    # plt.figure()
+    # plt.plot(x_points, int_points)
+    # plt.show()
+    # plt.close()
 
     bound_pts = findBndPtsExact(points, x_points, int_points)
 
@@ -186,11 +194,14 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     deflection = deflection*1000000000  # convert deflection to nm
 
     # Stiffness
-    k_L = 1.0  # 0.034  # N/m
+    k_L = 0.034  # 0.034  # N/m
 
     # Find boundaries of setup, approach, retract regions
     # using z-piezo position
     VboundsXY, VboundsI = returnBoundaries(timeCh1, distance, 500)
+
+    print(VboundsXY)
+    print(VboundsI)
 
     # Rescaled vectors to simplify following functions
     approachT = timeCh1[VboundsI[1]:VboundsI[2]]
@@ -285,9 +296,10 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
                comments="", delimiter=',')
 
     # Figures
-    plotEverything(originPt, baselineS, baselineI, contactS, contactI,
-                   retractZ_orig, retractD_orig, smooth3, separation,
-                   timeCh1, distance, retractZ, retractD, VboundsXY, VboundsI)
+    plotEverything(currentpic, abs(retr1), originPt, baselineS, baselineI,
+                   contactS, contactI, retractZ_orig, retractD_orig, smooth3,
+                   separation, timeCh1, distance, retractZ, retractD,
+                   VboundsXY, VboundsI)
     # plt.show()
     plt.savefig(path.join(dstDir, currentpic))
     plt.close()
