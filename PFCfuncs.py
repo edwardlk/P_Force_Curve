@@ -200,9 +200,6 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     # using z-piezo position
     VboundsXY, VboundsI = returnBoundaries(timeCh1, distance, 500)
 
-    print(VboundsXY)
-    print(VboundsI)
-
     # Rescaled vectors to simplify following functions
     approachT = timeCh1[VboundsI[1]:VboundsI[2]]
     approachZ = 4.77*13*distance[VboundsI[1]:VboundsI[2]]
@@ -215,9 +212,10 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     maxDefl = max(retractD_orig)
     x = 0
     while retractD_orig[x] == maxDefl:
+        x += 1
         if x > len(retractD_orig)-1:
             break
-        x += 1
+
     retractT = retractT[x:]
     retractZ_orig = retractZ_orig[x:]
     retractD_orig = retractD_orig[x:]
@@ -227,8 +225,7 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
         (contactS, contactI, baselineS,
          baselineI) = MLR.multiLinReg2(retractZ_orig, retractD_orig)
     except Exception:
-        sys.exc_clear()
-        print("File %s failed") % (currentfile)
+        print("File {} failed".format(currentfile))
         plt.plot(retractZ_orig, retractD_orig)
         plt.xlabel("Z-position (nm)")
         plt.ylabel("Deflection (nm)")

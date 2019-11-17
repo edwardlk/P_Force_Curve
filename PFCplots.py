@@ -44,7 +44,10 @@ def plotEverything(currentpic, v, originPt, baselineS, baselineI,
     plt.plot(0, 0, 'ro')
     plt.ylabel("Deflection (nm)")
     plt.xlabel("Z-position (nm)")
-    # plt.axis([-150, 10, min(retractD)-5, 20])
+    try:
+        plt.axis([-150, 10, min(retractD)-5, 20])
+    except ValueError:
+        plt.axis([-150, 10, -5, 20])
     plt.gca().xaxis.set_major_locator(plt.MultipleLocator(10))
     plt.grid(True, which="both")
 
@@ -54,7 +57,10 @@ def plotEverything(currentpic, v, originPt, baselineS, baselineI,
     plt.plot(0, 0, 'ro')
     plt.ylabel("Deflection (nm)")
     plt.xlabel("Separation (nm)")
-    # plt.axis([-150, 10, min(retractD)-5, 20])
+    try:
+        plt.axis([-150, 10, min(retractD)-5, 20])
+    except ValueError:
+        plt.axis([-150, 10, -5, 20])
     # plt.gca().xaxis.set_major_locator(plt.MultipleLocator(10))
     plt.grid(True, which="both")
 
@@ -65,7 +71,10 @@ def plotEverything(currentpic, v, originPt, baselineS, baselineI,
     plt.plot(0, 0, 'ro')
     plt.ylabel("Deflection (nm)")
     plt.xlabel("Separation (nm)")
-    # plt.axis([-150, 10, min(smooth3)-5, 20])
+    try:
+        plt.axis([-150, 10, min(smooth3)-5, 20])
+    except ValueError:
+        plt.axis([-150, 10, -5, 20])
     # plt.gca().xaxis.set_major_locator(plt.MultipleLocator(10))
     plt.grid(True, which="both")
 

@@ -67,7 +67,7 @@ def main():
     # df = pd.read_pickle(path.join(csvDir, "dummy.pkl"))
     # df.to_excel(path.join(csvDir, 'dataframe.xlsx'), sheet_name='Sheet1')
     print("Finished analyzing", path.split(srcDir)[1])
-    print('It took {:.2f} seconds to analyze %d files.'.format(
+    print('It took {:.2f} seconds to analyze {} files.'.format(
           time.time()-start) % (len(dataFiles)))
 
 
