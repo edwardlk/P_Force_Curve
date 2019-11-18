@@ -8,11 +8,12 @@ from PFCfuncs import outputFiles, mainAnalysis
 def main():
     # Designate input and output directories.
 
-    testFile = False
+    testFile = True
     testMulti = True
 
     if testFile:
         srcDir = R"F:\TEST\fullAnalysisTest"
+        srcDir = R'D:\TEST'
     else:
         root = Tk()
         root.withdraw()

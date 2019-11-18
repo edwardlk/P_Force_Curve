@@ -1,4 +1,3 @@
-import sys
 import matplotlib.pyplot as plt
 import numpy as np
 import multiLinReg as MLR
@@ -84,7 +83,7 @@ def findBndPtsExact(points, x_points, int_points):
                 slopeSwitch = False
                 bndCnt = bndCnt + 1
         else:
-            if abs(int_points[x]) > 0:
+            if abs(int_points[x]) > 0 and abs(int_points[x+1]):
                 bound_pts[bndCnt, 0] = x_points[x-1]
                 bound_pts[bndCnt, 1] = int_points[x-1]
                 slopeSwitch = True
@@ -149,13 +148,13 @@ def returnBoundaries(xdata, ydata, resolution):
         y_points[x] = slope
         int_points[x] = round(slope*2)/2
 
-    # plt.figure()
-    # plt.plot(x_points, y_points)
-    #
-    # plt.figure()
-    # plt.plot(x_points, int_points)
-    # plt.show()
-    # plt.close()
+    plt.figure()
+    plt.plot(x_points, y_points)
+
+    plt.figure()
+    plt.plot(x_points, int_points)
+    plt.show()
+    plt.close()
 
     bound_pts = findBndPtsExact(points, x_points, int_points)
 
@@ -200,6 +199,15 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     # using z-piezo position
     VboundsXY, VboundsI = returnBoundaries(timeCh1, distance, 500)
 
+    print(VboundsXY)
+    print(VboundsI)
+
+    plt.figure()
+    plt.plot(timeCh1, distance)
+    plt.plot(VboundsXY[:, 0], VboundsXY[:, 1], 'r.')
+    plt.show()
+    plt.close()
+
     # Rescaled vectors to simplify following functions
     approachT = timeCh1[VboundsI[1]:VboundsI[2]]
     approachZ = 4.77*13*distance[VboundsI[1]:VboundsI[2]]
@@ -224,6 +232,7 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     try:
         (contactS, contactI, baselineS,
          baselineI) = MLR.multiLinReg2(retractZ_orig, retractD_orig)
+        print('Contact(S,I): {:.2f}, {:.2f}; Baseline(S,I): {:.2f}, {:.2f}'.format(contactS, contactI, baselineS, baselineI))
     except Exception:
         print("File {} failed".format(currentfile))
         plt.plot(retractZ_orig, retractD_orig)
@@ -231,20 +240,31 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
         plt.ylabel("Deflection (nm)")
         plt.savefig(path.join(dstDir, currentpic))
         plt.close()
-        # continue
 
-    x_shift = (baselineI - contactI)/(contactS - baselineS)
-    y_shift = contactS * x_shift + contactI
+    try:
+        x_shift = (baselineI - contactI)/(contactS - baselineS)
+        y_shift = contactS * x_shift + contactI
+    except Exception:
+        x_shift = 0.0
+        y_shift = 0.0
+
+    print('x,y-shift:{:.2f}, {:.2f}'.format(x_shift, y_shift))
 
     retractZ = retractZ_orig - x_shift
     retractD = retractD_orig - y_shift
 
+    # plt.figure()
+    # plt.plot(retractZ, retractD)
+    # plt.show()
+    # plt.close()
+
     originPt = abs(retractZ).argmin()
     retractD = (retractD - baselineS * retractZ) / (contactS - baselineS)
 
-    retractD = (
-        retractD - np.average(retractD[np.argmin(abs(retractZ + 150.0)):
-                                       np.argmin(abs(retractZ + 200.0))]))
+    stop = np.argmin(abs(retractZ - min(retractZ) * 0.95))
+    start = np.argmin(abs(retractZ - min(retractZ) * 0.60))
+    print('{}; start,stop: {}, {}'.format(len(retractZ), start, stop))
+    retractD = (retractD - np.average(retractD[start:stop]))
 
     separation = retractZ - retractD
 
