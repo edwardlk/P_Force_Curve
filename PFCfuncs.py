@@ -148,13 +148,13 @@ def returnBoundaries(xdata, ydata, resolution):
         y_points[x] = slope
         int_points[x] = round(slope*2)/2
 
-    plt.figure()
-    plt.plot(x_points, y_points)
-
-    plt.figure()
-    plt.plot(x_points, int_points)
-    plt.show()
-    plt.close()
+    # plt.figure()
+    # plt.plot(x_points, y_points)
+    #
+    # plt.figure()
+    # plt.plot(x_points, int_points)
+    # plt.show()
+    # plt.close()
 
     bound_pts = findBndPtsExact(points, x_points, int_points)
 
@@ -199,15 +199,6 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     # using z-piezo position
     VboundsXY, VboundsI = returnBoundaries(timeCh1, distance, 500)
 
-    print(VboundsXY)
-    print(VboundsI)
-
-    plt.figure()
-    plt.plot(timeCh1, distance)
-    plt.plot(VboundsXY[:, 0], VboundsXY[:, 1], 'r.')
-    plt.show()
-    plt.close()
-
     # Rescaled vectors to simplify following functions
     approachT = timeCh1[VboundsI[1]:VboundsI[2]]
     approachZ = 4.77*13*distance[VboundsI[1]:VboundsI[2]]
@@ -232,7 +223,6 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     try:
         (contactS, contactI, baselineS,
          baselineI) = MLR.multiLinReg2(retractZ_orig, retractD_orig)
-        print('Contact(S,I): {:.2f}, {:.2f}; Baseline(S,I): {:.2f}, {:.2f}'.format(contactS, contactI, baselineS, baselineI))
     except Exception:
         print("File {} failed".format(currentfile))
         plt.plot(retractZ_orig, retractD_orig)
@@ -248,22 +238,14 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
         x_shift = 0.0
         y_shift = 0.0
 
-    print('x,y-shift:{:.2f}, {:.2f}'.format(x_shift, y_shift))
-
     retractZ = retractZ_orig - x_shift
     retractD = retractD_orig - y_shift
-
-    # plt.figure()
-    # plt.plot(retractZ, retractD)
-    # plt.show()
-    # plt.close()
 
     originPt = abs(retractZ).argmin()
     retractD = (retractD - baselineS * retractZ) / (contactS - baselineS)
 
     stop = np.argmin(abs(retractZ - min(retractZ) * 0.95))
     start = np.argmin(abs(retractZ - min(retractZ) * 0.60))
-    print('{}; start,stop: {}, {}'.format(len(retractZ), start, stop))
     retractD = (retractD - np.average(retractD[start:stop]))
 
     separation = retractZ - retractD
@@ -302,10 +284,11 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     # ruptureOut = np.column_stack((separation[originPt:ruptureI],
     #                               smooth2[originPt:ruptureI]))
 
-    csvheader = ("z-position(nm),separation(nm),retractD,Force(nN),Force_%d"
-                 "(nN),Force_%d(nN),Force_%d(nN),Force_%d(nN),v=%d nm/s"
-                 % (smDict['smooth1'], smDict['smooth2'], smDict['smooth3'],
-                    smDict['smooth4'], abs(retr1)))
+    csvheader = ('z-position(nm),separation(nm),retractD,'
+                 'Force(nN),Force_{}(nN),Force_{}(nN),Force_{}(nN),'
+                 'Force_{}(nN),v={} nm/s,k_L={}')
+    csvheader.format(smDict['smooth1'], smDict['smooth2'], smDict['smooth3'],
+                     smDict['smooth4'], abs(retr1), k_L)
 
     # ruptureH = "separation(nm),Force_25(nN)"
 
@@ -444,7 +427,6 @@ def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
              fitData_flipXY[yDataColList[4]], model1.best_fit, model2.best_fit,
              model3.best_fit, modelB1.best_fit, modelB2.best_fit, modelB3.best_fit)
     plt.savefig(path.join(imgDir, currentpic))
-    # plt.show()
     plt.close()
 
     print(currentfile + '  Done')

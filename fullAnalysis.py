@@ -3,17 +3,20 @@ from tkinter import Tk, filedialog
 import multiprocessing as mp
 from os import path, listdir, makedirs
 from PFCfuncs import outputFiles, mainAnalysis
+import numpy as np
+import pandas as pd
 
 
 def main():
     # Designate input and output directories.
 
-    testFile = True
-    testMulti = True
+    testFile = False
+    testMulti = False
 
     if testFile:
-        srcDir = R"F:\TEST\fullAnalysisTest"
-        srcDir = R'D:\TEST'
+        # srcDir = R"F:\TEST\fullAnalysisTest"
+        # srcDir = R'D:\TEST'
+        srcDir = R'F:\TEST\errors'
     else:
         root = Tk()
         root.withdraw()
@@ -46,11 +49,12 @@ def main():
     csvRupture = outputFiles(dataFiles, '-rupture.csv')
 
     # Pandas DataFrame to store measurements
-    # fillData = np.array([np.arange(len(dataFiles))]*7).T
-    # df = pd.DataFrame(fillData, columns=['file', 'rupture force (pN)',
-    #                                      'location', 'speed (nm/s)', 'WLC-P',
-    #                                      'WLC-L0', 'x_off'])
-    # df.to_pickle(path.join(csvDir, "dummy.pkl"))
+    fillData = np.array([np.arange(len(dataFiles))]*3).T
+    df = pd.DataFrame(fillData, columns=['filename', 'min_location',
+                                         'fit_start'])
+    df['filename'] = csvOutput
+    df.to_excel(path.join(csvDir, 'dataframe.xlsx'), sheet_name='Sheet1')
+    del df
 
     if testMulti:
         for x1 in range(len(dataFiles)):
@@ -65,11 +69,9 @@ def main():
         pool.close()
         pool.join()
 
-    # df = pd.read_pickle(path.join(csvDir, "dummy.pkl"))
-    # df.to_excel(path.join(csvDir, 'dataframe.xlsx'), sheet_name='Sheet1')
     print("Finished analyzing", path.split(srcDir)[1])
     print('It took {:.2f} seconds to analyze {} files.'.format(
-          time.time()-start) % (len(dataFiles)))
+          time.time()-start, len(dataFiles)))
 
 
 if __name__ == '__main__':

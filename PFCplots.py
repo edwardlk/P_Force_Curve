@@ -61,7 +61,7 @@ def plotEverything(currentpic, v, originPt, baselineS, baselineI,
         plt.axis([-150, 10, min(retractD)-5, 20])
     except ValueError:
         plt.axis([-150, 10, -5, 20])
-    # plt.gca().xaxis.set_major_locator(plt.MultipleLocator(10))
+    plt.gca().xaxis.set_major_locator(plt.MultipleLocator(10))
     plt.grid(True, which="both")
 
     plt.subplot(2, 3, 6)
@@ -72,9 +72,9 @@ def plotEverything(currentpic, v, originPt, baselineS, baselineI,
     plt.ylabel("Deflection (nm)")
     plt.xlabel("Separation (nm)")
     try:
-        plt.axis([-150, 10, min(smooth3)-5, 20])
+        plt.axis([-150, 10, min(smooth3)-5, 10])
     except ValueError:
-        plt.axis([-150, 10, -5, 20])
+        plt.axis([-150, 10, -5, 10])
     # plt.gca().xaxis.set_major_locator(plt.MultipleLocator(10))
     plt.grid(True, which="both")
 
