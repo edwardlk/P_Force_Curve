@@ -1,20 +1,25 @@
 import time
 from os import path, listdir, makedirs
 from tkinter import Tk, filedialog
-# import matplotlib.pyplot as plt
 import numpy as np
 import multiprocessing as mp
 
 
-def outputFiles(dataFiles, addon):
+def outputFiles(dataFiles, num, addon):
+    ''' Adjust list of file names, removing 'num' characters and adding 'addon'.
+        Returns list.
+    '''
     L = []
     for x in range(len(dataFiles)):
         temp = dataFiles[x]
-        L.append(temp[:-8] + addon)
+        L.append(temp[:-num] + addon)
     return L
 
 
 def dataAlign(x, srcDir, dstDir, dataFiles, dataOutput):
+    ''' Data file realignment procedure for use in multiprocessing
+        module.
+    '''
     currentfile = dataFiles[x]
     outputfile = dataOutput[x]
 
@@ -48,7 +53,6 @@ def main():
 
     srcDir = filedialog.askdirectory(parent=root, initialdir="/", title=info)
     dstDir = path.join(srcDir, 'output')
-    # csvDir = path.join(srcDir, 'csv')
 
     start = time.time()
 
@@ -62,51 +66,22 @@ def main():
         makedirs(dstDir)
     else:
         dataFiles.remove('output')
-    # if not path.exists(csvDir):
-    #     makedirs(csvDir)
-    # else:
-    #     dataFiles.remove('csv')
 
     # Create output files' names
-    dataOutput = outputFiles(dataFiles, '-output.txt')
-    # csvOutput = outputFiles(dataFiles, '.csv')
+    dataOutput = outputFiles(dataFiles, 8, '-output.txt')
 
+    # Convert files - multiprocessing
     pool = mp.Pool(processes=5)
     for x in range(len(dataFiles)):
         pool.apply_async(dataAlign, args=(x, srcDir, dstDir, dataFiles,
                                           dataOutput,))
     pool.close()
     pool.join()
+
     print("Finished analyzing", path.split(srcDir)[1])
-    print('It took {:.2f} seconds to analyze {} files.'.format(
+    print('It took {:.1f} seconds to analyze {} files.'.format(
           time.time()-start, len(dataFiles)))
 
 
 if __name__ == '__main__':
     main()
-
-# fig = plt.figure()
-# ax = fig.add_subplot(1, 1, 1)
-#
-# x = DeflectTable[:, 0]
-# y = DeflectTable[:, 1]*1000000000
-#
-# ax.scatter(x, y)
-# plt.show()
-# plt.close()
-#
-# # For grabing headers
-# line_number = int(raw_input('Enter the line number: '))
-# with open('packages.txt') as f:
-#     i = 1  # might need i==1 for multiple lines
-#     for line in f:
-#         if i == line_number:
-#             break
-#         i += 1
-#     # line now holds the line
-#     # (or is empty if the file is smaller than that number)
-#     print line
-#
-# for line in specFile:
-#     print line
-# specFile.close()
