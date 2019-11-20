@@ -6,7 +6,8 @@ import multiprocessing as mp
 
 
 def outputFiles(dataFiles, num, addon):
-    ''' Adjust list of file names, removing 'num' characters and adding 'addon'.
+    ''' Adjust list of file names, removing 'num' characters and adding
+        'addon'.
         Returns list.
     '''
     L = []
