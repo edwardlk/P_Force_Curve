@@ -10,13 +10,14 @@ import pandas as pd
 def main():
     # Designate input and output directories.
 
-    testFile = False
-    testMulti = False
+    testFile = True
+    testMulti = True
 
     if testFile:
         # srcDir = R"F:\TEST\fullAnalysisTest"
         # srcDir = R'D:\TEST'
         srcDir = R'F:\TEST\errors'
+        srcDir = R'D:\mlr_fix_test'
     else:
         root = Tk()
         root.withdraw()
@@ -49,25 +50,30 @@ def main():
     csvRupture = outputFiles(dataFiles, '-rupture.csv')
 
     # Pandas DataFrame to store measurements
-    fillData = np.array([np.arange(len(dataFiles))]*3).T
-    df = pd.DataFrame(fillData, columns=['filename', 'min_location',
-                                         'fit_start'])
-    df['filename'] = csvOutput
-    df.to_excel(path.join(csvDir, 'dataframe.xlsx'), sheet_name='Sheet1')
+    outputPkl = path.join(csvDir, "dummy.pkl")
+    outputCSV = path.join(csvDir, 'dataframe.xlsx')
+    col_list = ['filename', 'min_location', 'fit_start', 'cStart', 'bStart',
+                'Vb1', 'Vb2', 'Vb3', 'Vb4', 'Vb5']
+    df = pd.DataFrame(columns=col_list)
+    df.to_pickle(outputPkl)
+    # df.to_excel(outputCSV, sheet_name='Sheet1')
     del df
 
     if testMulti:
         for x1 in range(len(dataFiles)):
             mainAnalysis(x1, srcDir, dstDir, csvDir, dataFiles, dataImg,
-                         csvOutput, csvRupture)
+                         csvOutput, csvRupture, outputPkl)
     else:
         pool = mp.Pool(processes=5)
         for x1 in range(len(dataFiles)):
             pool.apply_async(mainAnalysis, args=(x1, srcDir, dstDir, csvDir,
                                                  dataFiles, dataImg, csvOutput,
-                                                 csvRupture,))
+                                                 csvRupture, outputPkl, ))
         pool.close()
         pool.join()
+
+    outputDF = pd.read_pickle(outputPkl)
+    outputDF.to_excel(outputCSV, sheet_name='Sheet1')
 
     print("Finished analyzing", path.split(srcDir)[1])
     print('It took {:.2f} seconds to analyze {} files.'.format(

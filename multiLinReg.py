@@ -46,30 +46,13 @@ def multiLinReg(x_data, y_data):
     s2, i2, r2, p2, se2 = stats.linregress(x_data[lowerBound:],
                                            y_data[lowerBound:])
 
-    # # Plots for testing
-    # plt.figure()
-    # plt.subplot(131)
-    # plt.plot(init_points[:,1], 'r.')
-    # plt.plot(init_points[:,2], 'b.')
-    # plt.plot(init_points[:,3], 'y.')
-    #
-    # plt.subplot(132)
-    # plt.plot(init_points[:,4], 'r.')
-    # plt.plot(init_points[:,5], 'b.')
-    # plt.plot(init_points[:,4] - init_points[:,5], 'b.')
-    #
-    # plt.subplot (133)
-    # plt.plot(x_data,y_data)
-    # plt.plot(x_data,s1*x_data + i1)
-    # plt.plot(x_data,s2*x_data + i2)
-    # plt.plot(x_data[init_points[maxPos, 0]],
-    #          y_data[init_points[maxPos, 0]], 'ro')
-    # plt.show()
     return s1, i1, s2, i2
 
 
 def multiLinReg2(x_data, y_data):
-    """ Info
+    """ Attempts to find the contact point of the AFM curve by fitting 2 linear
+        regressions, one for the baseline and one for the contact line.
+        Returns contact slope, intercept, baseline slope, intercept.
     """
     iteration = 0
 
@@ -105,3 +88,28 @@ def multiLinReg2(x_data, y_data):
         mid = (right + left) // 2
         iteration += 1
     return sout[0], sout[1], sout[2], sout[3]
+
+
+def multiLinRegDirect(x_data, y_data, cStart, bStart):
+    """ Attempts to find the contact point of the AFM curve by fitting 2 linear
+        regressions, one for the baseline and one for the contact line.
+        Returns contact slope, intercept, baseline slope, intercept.
+    """
+    # Create list of points for linear regressions
+    regPts = [0, (len(x_data)-1)]
+
+    # Add other linear regression points to list
+    x_data1 = abs(x_data - cStart)
+    cStartInt = x_data1.argmin()
+    regPts.append(cStartInt)
+    x_data2 = abs(x_data - bStart)
+    bStartInt = x_data2.argmin()
+    regPts.append(bStartInt)
+    regPts.sort()
+
+    cS, cI, r1c, p1c, se1c = stats.linregress(x_data[regPts[0]:regPts[1]],
+                                              y_data[regPts[0]:regPts[1]])
+    bS, bI, r1c, p1c, se1c = stats.linregress(x_data[regPts[2]:regPts[3]],
+                                              y_data[regPts[2]:regPts[3]])
+
+    return cS, cI, bS, bI

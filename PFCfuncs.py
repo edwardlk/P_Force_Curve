@@ -178,7 +178,7 @@ def returnBoundaries(xdata, ydata, resolution):
 
 
 def mainAnalysis(x1, srcDir, dstDir, csvDir,
-                 dataFiles, dataImg, csvOutput, csvRupture):
+                 dataFiles, dataImg, csvOutput, csvRupture, outputPkl):
     """ Info
     """
     currentfile = dataFiles[x1]
@@ -278,6 +278,9 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     smooth3 = smooth((k_L*retractD), smDict['smooth3'], 'hanning')
     smooth4 = smooth((k_L*retractD), smDict['smooth4'], 'hanning')
 
+    # calc minGuess
+    minLoc = 0
+
     # Output Calculations
     output = np.column_stack((retractZ, separation, retractD, k_L*retractD,
                               smooth1, smooth2, smooth3, smooth4))
@@ -303,6 +306,12 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     # plt.show()
     plt.savefig(path.join(dstDir, currentpic))
     plt.close()
+
+    outputDF = pd.read_pickle(outputPkl)
+    outputDF.loc[len(outputDF)] = [currentfile, minLoc, 0.0,
+        x_shift, x_shift, VboundsI[0], VboundsI[1],
+        VboundsI[2], VboundsI[3], VboundsI[4]]
+    outputDF.to_pickle(outputPkl)
 
     print("Completed ", x1+1, " of ", len(dataFiles), " files.")
 
