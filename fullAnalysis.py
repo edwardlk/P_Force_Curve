@@ -10,7 +10,7 @@ import pandas as pd
 def main():
     # Designate input and output directories.
 
-    testFile = True
+    testFile = False
     testMulti = True
 
     if testFile:
@@ -52,7 +52,7 @@ def main():
     # Pandas DataFrame to store measurements
     outputPkl = path.join(csvDir, "dummy.pkl")
     outputCSV = path.join(csvDir, 'dataframe.xlsx')
-    col_list = ['filename', 'min_location', 'fit_start', 'cStart', 'bStart',
+    col_list = ['fnum', 'filename', 'min_location', 'fit_start', 'cStart', 'bStart',
                 'Vb1', 'Vb2', 'Vb3', 'Vb4', 'Vb5']
     df = pd.DataFrame(columns=col_list)
     df.to_pickle(outputPkl)
@@ -73,6 +73,7 @@ def main():
         pool.join()
 
     outputDF = pd.read_pickle(outputPkl)
+    outputDF.sort_values(by=['fnum'])
     outputDF.to_excel(outputCSV, sheet_name='Sheet1')
 
     print("Finished analyzing", path.split(srcDir)[1])

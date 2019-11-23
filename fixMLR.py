@@ -13,6 +13,7 @@ print('k_L = {}'.format(k_L))
 
 if fileTest:
     srcDir = R'D:\mlr_fix_test'
+    srcDir = R'F:\_data\Avidin-Biotin\2016-05-24_Av-Bio_CB101B'
 
 imgDir = path.join(srcDir, 'images')
 csvDir = path.join(srcDir, 'RetractCSVs')
@@ -23,43 +24,51 @@ outputPkl = path.join(csvDir, "dummy.pkl")
 outputDF = pd.read_excel(outputCSV, index_col=0)
 outputDF.to_pickle(outputPkl)
 
+# 0     1           2               3           4       5       6   7   8   9   10
+# f_num filename    min_location    fit_start   cStart	bStart	Vb1	Vb2	Vb3	Vb4	Vb5
+
 for x in range(len(outputDF)):
-    testCB = (outputDF['cStart'][x] == outputDF['bStart'][x])
-    if not testCB:
-        dataFile = np.genfromtxt(path.join(srcDir, outputDF['filename'][x]),
-                                 skip_header=1)
+    f_name = outputDF.iloc[x, 1]
+    min_loc = outputDF.iloc[x, 2]
+    fit_st = outputDF.iloc[x, 3]
+    cstart = outputDF.iloc[x, 4]
+    bstart = outputDF.iloc[x, 5]
+    VboundsI = [outputDF.iloc[x, 6], outputDF.iloc[x, 7], outputDF.iloc[x, 8],
+                outputDF.iloc[x, 9], outputDF.iloc[x, 10]]
+
+    if not cstart == bstart:
+        currentpic = f_name[:-4] + '.png'
+        dataFile = np.genfromtxt(path.join(srcDir, f_name), skip_header=1)
 
         (timeCh1, distance, timeDefl, deflection) = dataFile.T
         deflection = deflection*1000000000  # convert deflection to nm
 
-        # outputDF['Vb3'][x]:outputDF['Vb4'][x]
-        VboundsI = [outputDF['Vb1'][x], outputDF['Vb2'][x], outputDF['Vb3'][x],
-                    outputDF['Vb4'][x], outputDF['Vb5'][x]]
         print(VboundsI)
         VboundsXY = np.zeros((5, 2))
         for x1 in range(len(VboundsI)):
             VboundsXY[x1, 0] = timeCh1[VboundsI[x1]]
             VboundsXY[x1, 1] = distance[VboundsI[x1]]
 
-        retractT = timeCh1[outputDF['Vb4'][x]:outputDF['Vb5'][x]]
-        retractZ_orig = 4.77*13*distance[outputDF['Vb4'][x]:outputDF['Vb5'][x]]
-        retractD_orig = deflection[outputDF['Vb4'][x]:outputDF['Vb5'][x]]
+        retractT = timeCh1[VboundsI[3]:VboundsI[4]]
+        retractZ_orig = 4.77*13*distance[VboundsI[3]:VboundsI[4]]
+        retractD_orig = deflection[VboundsI[3]:VboundsI[4]]
 
         # Remove data if deflection out of range
         maxDefl = max(retractD_orig)
         x = 0
-        while retractD_orig[x] == maxDefl:
-            x += 1
-            if x > len(retractD_orig)-1:
+        while retractD_orig[x1] == maxDefl:
+            x1 += 1
+            if x1 > len(retractD_orig)-1:
                 break
 
-        retractT = retractT[x:]
-        retractZ_orig = retractZ_orig[x:]
-        retractD_orig = retractD_orig[x:]
+        retractT = retractT[x1:]
+        retractZ_orig = retractZ_orig[x1:]
+        retractD_orig = retractD_orig[x1:]
+
+        print([cstart, bstart])
 
         (contactS, contactI, baselineS, baselineI) = multiLinRegDirect(
-            retractZ_orig, retractD_orig,
-            outputDF['bStart'][x], outputDF['cStart'][x])
+            retractZ_orig, retractD_orig, cstart, bstart)
 
         x_shift = (baselineI - contactI)/(contactS - baselineS)
         y_shift = contactS * x_shift + contactI
@@ -88,10 +97,11 @@ for x in range(len(outputDF)):
         smooth4 = smooth((k_L*retractD), smDict['smooth4'], 'hanning')
 
         # Figures
-        plotEverything('currentpic', abs(retr1), originPt, baselineS, baselineI,
+        plotEverything(currentpic, abs(retr1), originPt, baselineS, baselineI,
                        contactS, contactI, retractZ_orig, retractD_orig, smooth3,
                        separation, timeCh1, distance, retractZ, retractD,
                        VboundsXY, VboundsI)
-        plt.show()
-        # plt.savefig(path.join(dstDir, currentpic))
-        # plt.close()
+        # plt.show()
+        print(path.join(imgDir, currentpic))
+        plt.savefig(path.join(imgDir, currentpic))
+        plt.close()

@@ -279,7 +279,8 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     smooth4 = smooth((k_L*retractD), smDict['smooth4'], 'hanning')
 
     # calc minGuess
-    minLoc = 0
+    minX = np.argmin(retractD)
+    minLoc = retractZ[minX]
 
     # Output Calculations
     output = np.column_stack((retractZ, separation, retractD, k_L*retractD,
@@ -290,8 +291,9 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     csvheader = ('z-position(nm),separation(nm),retractD,'
                  'Force(nN),Force_{}(nN),Force_{}(nN),Force_{}(nN),'
                  'Force_{}(nN),v={} nm/s,k_L={}')
-    csvheader.format(smDict['smooth1'], smDict['smooth2'], smDict['smooth3'],
-                     smDict['smooth4'], abs(retr1), k_L)
+    csvheader = csvheader.format(
+        smDict['smooth1'], smDict['smooth2'], smDict['smooth3'],
+        smDict['smooth4'], abs(retr1), k_L)
 
     # ruptureH = "separation(nm),Force_25(nN)"
 
@@ -307,10 +309,11 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     plt.savefig(path.join(dstDir, currentpic))
     plt.close()
 
+    f_num = int(currentfile[6:10])
     outputDF = pd.read_pickle(outputPkl)
-    outputDF.loc[len(outputDF)] = [currentfile, minLoc, 0.0,
-        x_shift, x_shift, VboundsI[0], VboundsI[1],
-        VboundsI[2], VboundsI[3], VboundsI[4]]
+    outputDF.loc[len(outputDF)] = [f_num, currentfile, minLoc, 0.0, x_shift,
+                                   x_shift, VboundsI[0], VboundsI[1],
+                                   VboundsI[2], VboundsI[3], VboundsI[4]]
     outputDF.to_pickle(outputPkl)
 
     print("Completed ", x1+1, " of ", len(dataFiles), " files.")
