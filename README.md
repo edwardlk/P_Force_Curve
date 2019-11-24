@@ -38,9 +38,6 @@ script, when the dialog box opens select the folder that contains your data
 files and then wait until it finishes. The converted files will be in a new
 folder called 'output' that was created within the folder that you selected.
 
-*TO DO:*
-- Convert to python3
-
 ### fullAnalysis.py
 Used to do a batch analysis of protein force curves captured in Time Spec mode.
 Assumes data files have a format similar to the **Spec4-001-output.txt**
@@ -62,12 +59,32 @@ with only the data that it trird to fit to the WLC model.
 making it easier to find the files that the program failed to properly analyze.
 
 *TO DO:*
-- Convert to python3
 - ask for cantilever stiffness
 - allow switching b/w Time Spec & regular Spec files
 - multiple Time Spec curves in a single file.
 - make step 1 more robust for handling different Time Spec setups (e.g. w/ & w/o
   hold on surface)
+
+### fixMLR.py
+*fullAnalysis.py* outputs *dataframe.xlsx*, which contains the info necessary
+to fix any errors that occur during *fullAnalysis.py*. *dataframe.xlsx* looks
+like this:
+
+| fnum | filename | min_location | fit_start | cStart | bStart | Vb1 | Vb2 | Vb3 | Vb4 | Vb5 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 457 | Spec-1.txt | -32.5 | 0 | -160.8 | -160.8 | 23785 | 29465 | 78455 | 101885 | 352515 |
+| 458 | Spec-2.txt | -60.7 | 0 | -197.4 | -197.4 | 23785 | 29465 | 78455 | 101885 | 352515 |
+|...|
+
+Possible errors and how to fix:
+1. **Bad baseline or contactline fitting**:
+Use the graph or the original data to adjust 'cStart' and/or 'bStart'.
+2. **contactline gets nonlinear/'crazy' as the cantilever is pushed harder**:
+You can increase 'Vb4' to exclude the beginning points of the retract curve.
+Similarly, you can reduce the value of 'Vb5' to exclude the end of the retract curve.
+
+*NOTE*
+Right now, *fixMLR.py* only reanalyzes a curve if 'cStart' != 'bStart'.
 
 ### singleCurve.py
 Testing script for what was eventually added to the fullAnalysis script. Kept
