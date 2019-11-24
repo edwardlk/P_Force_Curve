@@ -13,7 +13,8 @@ def main():
 
     if testing:
         srcDir = R"F:\_data\Avidin-Biotin\fixmlrtest\RetractCSVs"
-        rupFileLoc = R"F:\_data\Avidin-Biotin\fixmlrtest\RetractCSVs\dataframe.xlsx"
+        rupFileLoc = (
+            R"F:\_data\Avidin-Biotin\fixmlrtest\RetractCSVs\dataframe.xlsx")
     else:
         # Designate input and output directories.
         root = Tk()

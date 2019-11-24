@@ -3,7 +3,6 @@ from tkinter import Tk, filedialog
 import multiprocessing as mp
 from os import path, listdir, makedirs
 from PFCfuncs import outputFiles, mainAnalysis
-import numpy as np
 import pandas as pd
 
 
@@ -27,7 +26,8 @@ def main():
                                          initialdir="/", title=info)
     try:
         k_L = float(input('Enter the cantilever stiffness (N/m): '))
-        print('OK! Setting k_L = {} N/m.\nStarting analysis now...'.format(k_L))
+        print('OK! Setting k_L = {} N/m.'
+              '\nStarting analysis now...'.format(k_L))
     except Exception:
         k_L = 1.0
         print('Something went wrong, set k_L = 1.0 N/m.')
@@ -57,8 +57,8 @@ def main():
     # Pandas DataFrame to store measurements
     outputPkl = path.join(csvDir, "dummy.pkl")
     outputCSV = path.join(csvDir, 'dataframe.xlsx')
-    col_list = ['fnum', 'filename', 'min_location', 'fit_start', 'cStart', 'bStart',
-                'Vb1', 'Vb2', 'Vb3', 'Vb4', 'Vb5']
+    col_list = ['fnum', 'filename', 'min_location', 'fit_start', 'cStart',
+                'bStart', 'Vb1', 'Vb2', 'Vb3', 'Vb4', 'Vb5']
     df = pd.DataFrame(columns=col_list)
     df.to_pickle(outputPkl)
     # df.to_excel(outputCSV, sheet_name='Sheet1')
@@ -71,9 +71,10 @@ def main():
     else:
         pool = mp.Pool(processes=5)
         for x1 in range(len(dataFiles)):
-            pool.apply_async(mainAnalysis, args=(x1, k_L, srcDir, dstDir, csvDir,
-                                                 dataFiles, dataImg, csvOutput,
-                                                 csvRupture, outputPkl, ))
+            pool.apply_async(mainAnalysis, args=(x1, k_L, srcDir, dstDir,
+                                                 csvDir, dataFiles, dataImg,
+                                                 csvOutput, csvRupture,
+                                                 outputPkl, ))
         pool.close()
         pool.join()
 

@@ -23,8 +23,10 @@ outputPkl = path.join(csvDir, "dummy.pkl")
 outputDF = pd.read_excel(outputCSV, index_col=0)
 outputDF.to_pickle(outputPkl)
 
-# 0     1           2               3           4       5       6   7   8   9   10
-# f_num filename    min_location    fit_start   cStart	bStart	Vb1	Vb2	Vb3	Vb4	Vb5
+# 0     1           2               3           4       5
+# f_num filename    min_location    fit_start   cStart	bStart
+# 6     7   8   9   10
+# Vb1   Vb2 Vb3 Vb4 Vb5
 
 for x in range(len(outputDF)):
     f_name = outputDF.iloc[x, 1]
@@ -88,10 +90,6 @@ for x in range(len(outputDF)):
 
         separation = retractZ - retractD
 
-        # Retract Speed
-        # retr1 = 0.0
-        # retr1, retr2, retr3, retr4, retr5 = stats.linregress(retractT, retractZ)
-
         smDict = {
             'smooth1': 11,
             'smooth2': 21,
@@ -117,9 +115,9 @@ for x in range(len(outputDF)):
 
         # Figures
         plotEverything(currentpic, abs(retr1), originPt, baselineS, baselineI,
-                       contactS, contactI, retractZ_orig, retractD_orig, smooth3,
-                       separation, timeCh1, distance, retractZ, retractD,
-                       VboundsXY, VboundsI)
+                       contactS, contactI, retractZ_orig, retractD_orig,
+                       smooth3, separation, timeCh1, distance, retractZ,
+                       retractD, VboundsXY, VboundsI)
         # plt.show()
         # print(path.join(imgDir, currentpic))
         plt.savefig(path.join(imgDir, currentpic))

@@ -105,7 +105,8 @@ def fitGuessPlot(dataFile, xDataCol, yDataCol, minGuessID, minGuessRange,
 
 
 def plotFits(currentfile, outputfile, fitData, xdata, xdataXY, ydata, ydataXY,
-             model1fit, model2fit, model3fit, modelB1fit, modelB2fit, modelB3fit):
+             model1fit, model2fit, model3fit, modelB1fit, modelB2fit,
+             modelB3fit):
     """Info
     """
     title1 = (outputfile[:-4] + '  ' + fitData.columns[-2] + ' '

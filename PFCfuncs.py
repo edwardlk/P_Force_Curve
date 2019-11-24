@@ -5,7 +5,7 @@ from scipy import stats
 from lmfit import Model
 from os import path
 import pandas as pd
-from polymerModels import WLCmodelNoXY, WLCmodelImproved  # , FJCmodel
+from polymerModels import WLCmodelNoXY, WLCmodelImproved
 from PFCplots import plotEverything, plotFits
 
 
@@ -429,13 +429,16 @@ def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
     fit_df.loc[len(fit_df)] = fitPrntList(x, 3, vel, outputfile, model3,
                                           fitData_flip[yDataColList[4]].max(),
                                           fitData_flip['z-position(nm)'].max())
-    fit_df.loc[len(fit_df)] = fitPrntList(x, 'improved 1', vel, outputfile, modelB1,
+    fit_df.loc[len(fit_df)] = fitPrntList(x, 'improved 1', vel, outputfile,
+                                          modelB1,
                                           fitData_flip[yDataColList[4]].max(),
                                           fitData_flip['z-position(nm)'].max())
-    fit_df.loc[len(fit_df)] = fitPrntList(x, 'improved 2', vel, outputfile, modelB2,
+    fit_df.loc[len(fit_df)] = fitPrntList(x, 'improved 2', vel, outputfile,
+                                          modelB2,
                                           fitData_flip[yDataColList[4]].max(),
                                           fitData_flip['z-position(nm)'].max())
-    fit_df.loc[len(fit_df)] = fitPrntList(x, 'improved 3', vel, outputfile, modelB3,
+    fit_df.loc[len(fit_df)] = fitPrntList(x, 'improved 3', vel, outputfile,
+                                          modelB3,
                                           fitData_flip[yDataColList[4]].max(),
                                           fitData_flip['z-position(nm)'].max())
     fit_df.to_pickle(path.join(csvDir, "dummy.pkl"))
@@ -443,7 +446,8 @@ def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
     plotFits(currentfile, outputfile, fitData, fitData_flip['z-position(nm)'],
              fitData_flipXY['z-position(nm)'], fitData_flip[yDataColList[4]],
              fitData_flipXY[yDataColList[4]], model1.best_fit, model2.best_fit,
-             model3.best_fit, modelB1.best_fit, modelB2.best_fit, modelB3.best_fit)
+             model3.best_fit, modelB1.best_fit, modelB2.best_fit,
+             modelB3.best_fit)
     plt.savefig(path.join(imgDir, currentpic))
     plt.close()
 
