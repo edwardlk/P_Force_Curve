@@ -8,11 +8,12 @@ from PFCfuncs import fitOutputFiles, fitAnalysis
 
 def main():
 
-    testing = True
+    testing = False
+    testingMulti = True
 
     if testing:
-        srcDir = R"F:/TEST/fitTest"
-        rupFileLoc = R"F:/TEST/fitTest/proteinFit.csv"
+        srcDir = R"F:\_data\Avidin-Biotin\fixmlrtest\RetractCSVs"
+        rupFileLoc = R"F:\_data\Avidin-Biotin\fixmlrtest\RetractCSVs\dataframe.xlsx"
     else:
         # Designate input and output directories.
         root = Tk()
@@ -40,6 +41,8 @@ def main():
     # Remove non-datafiles from the data file list
     if rupFile in dataFiles:
         dataFiles.remove(rupFile)
+    if 'dummy.pkl' in dataFiles:
+        dataFiles.remove('dummy.pkl')
 
     if not path.exists(imgDir):
         makedirs(imgDir)
@@ -50,7 +53,7 @@ def main():
     else:
         dataFiles.remove('fitCSVs')
 
-    rupGuess = pd.read_csv(rupFileLoc)
+    rupGuess = pd.read_excel(rupFileLoc, index_col=0)
 
     # Create output files' names
     rupImg = fitOutputFiles(rupGuess, '-fit.png')
@@ -65,7 +68,7 @@ def main():
     fit_df = pd.DataFrame(columns=col_list)
     fit_df.to_pickle(path.join(csvDir, "dummy.pkl"))
 
-    if testing:
+    if testingMulti:
         for x in range(len(rupGuess)):
             fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
                         rupOutput)

@@ -29,7 +29,7 @@ def fitOutputFiles(rupGuess, addon):
         raise ValueError('fitOutputFiles only accepts dataframe')
 
     L = []
-    temp = rupGuess.iloc[:, 0].value_counts().to_dict()
+    temp = rupGuess.loc[:, 'filename'].value_counts().to_dict()
 
     for x in temp:
         for y in range(temp[x]):
@@ -177,7 +177,7 @@ def returnBoundaries(xdata, ydata, resolution):
     return VboundsXY, VboundsI
 
 
-def mainAnalysis(x1, srcDir, dstDir, csvDir,
+def mainAnalysis(x1, k_L, srcDir, dstDir, csvDir,
                  dataFiles, dataImg, csvOutput, csvRupture, outputPkl):
     """ Info
     """
@@ -193,7 +193,7 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     deflection = deflection*1000000000  # convert deflection to nm
 
     # Stiffness
-    k_L = 0.034  # 0.034  # N/m
+    # k_L = 0.034  # 0.034  # N/m
 
     # Find boundaries of setup, approach, retract regions
     # using z-piezo position
@@ -241,7 +241,11 @@ def mainAnalysis(x1, srcDir, dstDir, csvDir,
     retractZ = retractZ_orig - x_shift
     retractD = retractD_orig - y_shift
 
-    originPt = abs(retractZ).argmin()
+    try:
+        originPt = abs(retractZ).argmin()
+    except Exception:
+        originPt = 0
+
     retractD = (retractD - baselineS * retractZ) / (contactS - baselineS)
 
     stop = np.argmin(abs(retractZ - min(retractZ) * 0.95))
@@ -394,6 +398,8 @@ def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
     fitData_flipXY = fitData_flip.sub(fitData_flipMin.loc['mean'],
                                       axis='columns')
 
+    vel = float(fitData.columns[-2][2:-5])
+
     # Fit Data.
     # WLCmodelNoXY, WLCmodelImproved
     # model1 - No adjustment to force curve
@@ -413,7 +419,7 @@ def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
                             fitData_flip['z-position(nm)'])
     modelB3 = fitToWLCmodel(WLCmodelImproved, fitData_flipXY[yDataColList[4]],
                             fitData_flipXY['z-position(nm)'])
-    vel = int(fitData.columns[-1][2:-4])
+
     fit_df.loc[len(fit_df)] = fitPrntList(x, 1, vel, outputfile, model1,
                                           fitData_flip[yDataColList[4]].max(),
                                           fitData_flip['z-position(nm)'].max())
@@ -441,4 +447,4 @@ def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
     plt.savefig(path.join(imgDir, currentpic))
     plt.close()
 
-    print(currentfile + '  Done')
+    print(currentfile + '  *Done*')

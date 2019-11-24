@@ -8,12 +8,11 @@ import matplotlib.pyplot as plt
 
 fileTest = True
 
-k_L = 0.034
-print('k_L = {}'.format(k_L))
+# k_L = 0.034
+# print('k_L = {}'.format(k_L))
 
 if fileTest:
-    srcDir = R'D:\mlr_fix_test'
-    srcDir = R'F:\_data\Avidin-Biotin\2016-05-24_Av-Bio_CB101B'
+    srcDir = R'F:\_data\Avidin-Biotin\fixmlrtest'
 
 imgDir = path.join(srcDir, 'images')
 csvDir = path.join(srcDir, 'RetractCSVs')
@@ -37,13 +36,23 @@ for x in range(len(outputDF)):
                 outputDF.iloc[x, 9], outputDF.iloc[x, 10]]
 
     if not cstart == bstart:
+        print('Fixing {}...'.format(f_name), end='')
+
         currentpic = f_name[:-4] + '.png'
+        outputData = f_name[:-4] + '.csv'
+
         dataFile = np.genfromtxt(path.join(srcDir, f_name), skip_header=1)
+
+        # [8]: v=31.161730724995547 nm/s [9]: k_L=0.034
+        oldCSV = pd.read_csv(path.join(csvDir, outputData))
+        oldCSVh = oldCSV.columns
+
+        retr1 = float(oldCSVh[8][2:-5])
+        k_L = float(oldCSVh[9][4:])
 
         (timeCh1, distance, timeDefl, deflection) = dataFile.T
         deflection = deflection*1000000000  # convert deflection to nm
 
-        print(VboundsI)
         VboundsXY = np.zeros((5, 2))
         for x1 in range(len(VboundsI)):
             VboundsXY[x1, 0] = timeCh1[VboundsI[x1]]
@@ -65,8 +74,6 @@ for x in range(len(outputDF)):
         retractZ_orig = retractZ_orig[x1:]
         retractD_orig = retractD_orig[x1:]
 
-        print([cstart, bstart])
-
         (contactS, contactI, baselineS, baselineI) = multiLinRegDirect(
             retractZ_orig, retractD_orig, cstart, bstart)
 
@@ -82,7 +89,7 @@ for x in range(len(outputDF)):
         separation = retractZ - retractD
 
         # Retract Speed
-        retr1 = 0.0
+        # retr1 = 0.0
         # retr1, retr2, retr3, retr4, retr5 = stats.linregress(retractT, retractZ)
 
         smDict = {
@@ -96,12 +103,26 @@ for x in range(len(outputDF)):
         smooth3 = smooth((k_L*retractD), smDict['smooth3'], 'hanning')
         smooth4 = smooth((k_L*retractD), smDict['smooth4'], 'hanning')
 
+        output = np.column_stack((retractZ, separation, retractD, k_L*retractD,
+                                  smooth1, smooth2, smooth3, smooth4))
+        csvheader = ('z-position(nm),separation(nm),retractD,'
+                     'Force(nN),Force_{}(nN),Force_{}(nN),Force_{}(nN),'
+                     'Force_{}(nN),v={} nm/s,k_L={}')
+        csvheader = csvheader.format(
+            smDict['smooth1'], smDict['smooth2'], smDict['smooth3'],
+            smDict['smooth4'], abs(retr1), k_L)
+
+        np.savetxt(path.join(csvDir, outputData), output, header=csvheader,
+                   comments="", delimiter=',')
+
         # Figures
         plotEverything(currentpic, abs(retr1), originPt, baselineS, baselineI,
                        contactS, contactI, retractZ_orig, retractD_orig, smooth3,
                        separation, timeCh1, distance, retractZ, retractD,
                        VboundsXY, VboundsI)
         # plt.show()
-        print(path.join(imgDir, currentpic))
+        # print(path.join(imgDir, currentpic))
         plt.savefig(path.join(imgDir, currentpic))
         plt.close()
+
+        print('Done')

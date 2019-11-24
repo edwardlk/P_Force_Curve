@@ -108,8 +108,9 @@ def plotFits(currentfile, outputfile, fitData, xdata, xdataXY, ydata, ydataXY,
              model1fit, model2fit, model3fit, modelB1fit, modelB2fit, modelB3fit):
     """Info
     """
-    plt.figure(figsize=(12, 16)).suptitle(outputfile[:-4] + '  '
-                                         + fitData.columns[-1])
+    title1 = (outputfile[:-4] + '  ' + fitData.columns[-2] + ' '
+              + fitData.columns[-1])
+    plt.figure(figsize=(12, 16)).suptitle(title1)
     plt.title(currentfile)
     plt.subplot(3, 2, 1)
     plt.plot(xdata, ydata, 'b,')
