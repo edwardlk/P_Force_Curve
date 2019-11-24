@@ -25,11 +25,16 @@ def main():
                 "you wish to analyze.")
         srcDir = filedialog.askdirectory(parent=root,
                                          initialdir="/", title=info)
+    try:
+        k_L = float(input('Enter the cantilever stiffness (N/m): '))
+        print('OK! Setting k_L = {} N/m.\nStarting analysis now...'.format(k_L))
+    except Exception:
+        k_L = 1.0
+        print('Something went wrong, set k_L = 1.0 N/m.')
     dstDir = path.join(srcDir, 'images')
     csvDir = path.join(srcDir, 'RetractCSVs')
 
     # Get file list from source directory
-
     dataFiles = listdir(srcDir)
     dataFiles.sort()
 
@@ -61,12 +66,12 @@ def main():
 
     if testMulti:
         for x1 in range(len(dataFiles)):
-            mainAnalysis(x1, srcDir, dstDir, csvDir, dataFiles, dataImg,
+            mainAnalysis(x1, k_L, srcDir, dstDir, csvDir, dataFiles, dataImg,
                          csvOutput, csvRupture, outputPkl)
     else:
         pool = mp.Pool(processes=5)
         for x1 in range(len(dataFiles)):
-            pool.apply_async(mainAnalysis, args=(x1, srcDir, dstDir, csvDir,
+            pool.apply_async(mainAnalysis, args=(x1, k_L, srcDir, dstDir, csvDir,
                                                  dataFiles, dataImg, csvOutput,
                                                  csvRupture, outputPkl, ))
         pool.close()

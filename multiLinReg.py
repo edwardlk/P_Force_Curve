@@ -107,8 +107,6 @@ def multiLinRegDirect(x_data, y_data, cStart, bStart):
     regPts.append(bStartInt)
     regPts.sort()
 
-    print(regPts)
-
     cS, cI, r1c, p1c, se1c = stats.linregress(x_data[regPts[0]:regPts[1]],
                                               y_data[regPts[0]:regPts[1]])
     bS, bI, r1c, p1c, se1c = stats.linregress(x_data[regPts[2]:regPts[3]],
