@@ -1,18 +1,26 @@
 from multiLinReg import multiLinRegDirect
 from os import path
 import pandas as pd
+from tkinter import Tk, filedialog
 import numpy as np
 from PFCfuncs import smooth
 from PFCplots import plotEverything
 import matplotlib.pyplot as plt
 
-fileTest = True
+fileTest = False
 
 # k_L = 0.034
 # print('k_L = {}'.format(k_L))
 
 if fileTest:
     srcDir = R'F:\_data\Avidin-Biotin\fixmlrtest'
+else:
+    root = Tk()
+    root.withdraw()
+    info = ("Please select the folder that contains the data files "
+            "you wish to analyze.")
+    srcDir = filedialog.askdirectory(parent=root,
+                                     initialdir="/", title=info)
 
 imgDir = path.join(srcDir, 'images')
 csvDir = path.join(srcDir, 'RetractCSVs')
@@ -116,7 +124,7 @@ for x in range(len(outputDF)):
         # Figures
         plotEverything(currentpic, abs(retr1), originPt, baselineS, baselineI,
                        contactS, contactI, retractZ_orig, retractD_orig,
-                       smooth3, separation, timeCh1, distance, retractZ,
+                       smooth4, separation, timeCh1, distance, retractZ,
                        retractD, VboundsXY, VboundsI)
         # plt.show()
         # print(path.join(imgDir, currentpic))
