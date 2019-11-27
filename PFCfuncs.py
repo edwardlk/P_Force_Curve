@@ -377,10 +377,13 @@ def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
 
     yDataCol = yDataColList[5]
 
+    x_data = dataFile['z-position(nm)']
+    y_data = dataFile[yDataColList[4]]
+
     # Find min near minGuess, get row #'s of min and fitStart
     temp = abs(dataFile['z-position(nm)'] - minGuess)
     minGuessID = temp.idxmin()
-    minGuessRange = int(7 * len(dataFile['z-position(nm)']) / (
+    minGuessRange = int(3 * len(dataFile['z-position(nm)']) / (
         dataFile['z-position(nm)'].max() - dataFile['z-position(nm)'].min()))
     minID = dataFile[yDataCol][(minGuessID-minGuessRange):
                                (minGuessID+minGuessRange)].idxmin()
@@ -447,7 +450,8 @@ def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
              fitData_flipXY['z-position(nm)'], fitData_flip[yDataColList[4]],
              fitData_flipXY[yDataColList[4]], model1.best_fit, model2.best_fit,
              model3.best_fit, modelB1.best_fit, modelB2.best_fit,
-             modelB3.best_fit)
+             modelB3.best_fit, x_data, y_data,
+             minGuessID, minGuessRange, fitStartID, minID)
     plt.savefig(path.join(imgDir, currentpic))
     plt.close()
 

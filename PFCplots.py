@@ -77,7 +77,7 @@ def plotEverything(currentpic, v, originPt, baselineS, baselineI,
         plt.axis([-50, 10, minS3*1.1, maxS3*0.1])
     except ValueError:
         plt.axis([-50, 10, -5, 10])
-    plt.gca().xaxis.set_major_locator(plt.MultipleLocator(5))
+    plt.gca().xaxis.set_major_locator(plt.MultipleLocator(4))
     plt.grid(True, which="both")
 
 
@@ -108,44 +108,61 @@ def fitGuessPlot(dataFile, xDataCol, yDataCol, minGuessID, minGuessRange,
 
 def plotFits(currentfile, outputfile, fitData, xdata, xdataXY, ydata, ydataXY,
              model1fit, model2fit, model3fit, modelB1fit, modelB2fit,
-             modelB3fit):
+             modelB3fit, x_data, y_data,
+             minGuessID, minGuessRange, fitStartID, minID):
     """Info
     """
-    title1 = (outputfile[:-4] + '  ' + fitData.columns[-2] + ' '
-              + fitData.columns[-1])
-    plt.figure(figsize=(12, 16)).suptitle(title1)
+    vel = float(fitData.columns[-2][2:-5])
+    title1 = (outputfile[:-4] + '  v = {:.2f} '
+              + fitData.columns[-1]).format(vel)
+
+    plt.figure(figsize=(12, 15)).suptitle(title1, fontsize=24)
     plt.title(currentfile)
-    plt.subplot(3, 2, 1)
+    plt.subplot(411)
+    plt.plot(x_data, y_data, 'b,')
+    plt.plot(x_data.iloc[[minGuessID]], min(y_data)*1.1, 'rx')
+    plt.plot(x_data.iloc[[minGuessID+minGuessRange]], min(y_data)*1.1, 'r|')
+    plt.plot(x_data.iloc[[minGuessID-minGuessRange]], min(y_data)*1.1, 'r|')
+    plt.plot(x_data.iloc[[minID]], min(y_data)*1.1, 'gx')
+    plt.plot(x_data.iloc[[fitStartID]], min(y_data)*1.1, 'g|')
+    plt.plot(x_data[fitStartID:minID], y_data[fitStartID:minID], 'r,')
+    plt.axis([(x_data.iloc[[minID]][minID]-10), 5,
+              min(y_data)*1.2, abs(min(y_data))])
+    plt.gca().xaxis.set_major_locator(plt.MultipleLocator(10))
+    plt.gca().yaxis.set_major_locator(plt.MultipleLocator(1))
+    plt.grid(True, axis='both')
+
+    plt.subplot(423)
     plt.plot(xdata, ydata, 'b,')
     plt.plot(xdata, model1fit, 'r-', label='best fit')
     plt.axis([0, max(xdata)+5, 0, max(ydata)*1.1])
     plt.legend(loc='best')
 
-    plt.subplot(3, 2, 3)
+    plt.subplot(425)
     plt.plot(xdata, ydataXY, 'b,')
     plt.plot(xdata, model2fit, 'r-', label='best fit')
     plt.axis([0, max(xdata)+5, 0, max(ydataXY)*1.1])
     plt.legend(loc='best')
 
-    plt.subplot(3, 2, 5)
+    plt.subplot(427)
     plt.plot(xdataXY, ydataXY, 'b,')
     plt.plot(xdataXY, model3fit, 'r-', label='best fit')
     plt.axis([0, max(xdataXY)+5, 0, max(ydataXY)*1.1])
     plt.legend(loc='best')
 
-    plt.subplot(3, 2, 2)
+    plt.subplot(424)
     plt.plot(xdata, ydata, 'b,')
     plt.plot(xdata, modelB1fit, 'r-', label='best fit')
     plt.axis([0, max(xdata)+5, 0, max(ydata)*1.1])
     plt.legend(loc='best')
 
-    plt.subplot(3, 2, 4)
+    plt.subplot(426)
     plt.plot(xdata, ydataXY, 'b,')
     plt.plot(xdata, modelB2fit, 'r-', label='best fit')
     plt.axis([0, max(xdata)+5, 0, max(ydataXY)*1.1])
     plt.legend(loc='best')
 
-    plt.subplot(3, 2, 6)
+    plt.subplot(428)
     plt.plot(xdataXY, ydataXY, 'b,')
     plt.plot(xdataXY, modelB3fit, 'r-', label='best fit')
     plt.axis([0, max(xdataXY)+5, 0, max(ydataXY)*1.1])
