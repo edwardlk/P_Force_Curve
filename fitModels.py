@@ -4,6 +4,8 @@ import pandas as pd
 import multiprocessing as mp
 from os import path, listdir, makedirs
 from PFCfuncs import fitOutputFiles, fitAnalysis
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 def main():
@@ -82,6 +84,22 @@ def main():
 
     df = pd.read_pickle(path.join(csvDir, "dummy.pkl"))
     df.to_excel(path.join(csvDir, 'dataframe.xlsx'), sheet_name='Sheet1')
+
+    # plot histograms
+    numB = 10
+    for x in range(20):
+        df1 = df[df['model#'] == 'improved 3']
+        sns.distplot(df1['rupture force (pN)'], bins=numB, label='improved 3')
+        df2 = df[df['model#'] == 3]
+        sns.distplot(df2['rupture force (pN)'], bins=numB, label='3')
+        plt.legend(prop={'size': 12})
+        plt.xlabel('rupture force (pN)', fontsize=15)
+        plt.ylabel("Frequency", fontsize=15)
+        plt.savefig(path.join(csvDir, 'improved3-{}'.format(numB)))
+        plt.close()
+        numB += 1
+
+
     print("Finished analyzing", path.split(srcDir)[1])
     print('It took {:.2f} seconds to analyze %d files.'.format(
           time.time()-start) % (len(dataFiles)))
