@@ -6,6 +6,8 @@ import numpy as np
 from PFCfuncs import smooth
 from PFCplots import plotEverything
 import matplotlib.pyplot as plt
+from scipy import stats
+
 
 fileTest = False
 
@@ -97,6 +99,8 @@ for x in range(len(outputDF)):
         retractD = (retractD - baselineS * retractZ) / (contactS - baselineS)
 
         separation = retractZ - retractD
+
+        retr1, retr2, retr3, retr4, retr5 = stats.linregress(retractT, retractZ)
 
         smDict = {
             'smooth1': 11,

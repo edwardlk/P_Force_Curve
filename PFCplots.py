@@ -128,7 +128,7 @@ def plotFits(currentfile, outputfile, fitData, xdata, xdataXY, ydata, ydataXY,
     plt.plot(x_data[fitStartID:minID], y_data[fitStartID:minID], 'r,')
     plt.axis([(x_data.iloc[[minID]][minID]-10), 5,
               min(y_data)*1.2, abs(min(y_data))])
-    plt.gca().xaxis.set_major_locator(plt.MultipleLocator(10))
+    plt.gca().xaxis.set_major_locator(plt.MultipleLocator(2))
     plt.gca().yaxis.set_major_locator(plt.MultipleLocator(1))
     plt.grid(True, axis='both')
 

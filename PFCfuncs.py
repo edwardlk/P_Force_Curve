@@ -347,7 +347,7 @@ def fitPrntList(x, y, vel, currentfile, model1, Ymax, Xmax):
     else:
         L_Cerr = 0.0
 
-    return [currentfile, y, vel, Ymax, Xmax, model1.method, model1.nfev,
+    return [currentfile, y, vel, Ymax*1000.0, Xmax, model1.method, model1.nfev,
             model1.ndata, model1.nvarys, model1.chisqr, model1.redchi,
             model1.aic, model1.bic, model1.best_values['L_P'], L_Perr,
             model1.best_values['L_C'], L_Cerr]
@@ -383,7 +383,7 @@ def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
     # Find min near minGuess, get row #'s of min and fitStart
     temp = abs(dataFile['z-position(nm)'] - minGuess)
     minGuessID = temp.idxmin()
-    minGuessRange = int(3 * len(dataFile['z-position(nm)']) / (
+    minGuessRange = int(0.5 * len(dataFile['z-position(nm)']) / (
         dataFile['z-position(nm)'].max() - dataFile['z-position(nm)'].min()))
     minID = dataFile[yDataCol][(minGuessID-minGuessRange):
                                (minGuessID+minGuessRange)].idxmin()
