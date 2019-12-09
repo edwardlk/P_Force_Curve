@@ -45,15 +45,15 @@ def plotEverything(currentpic, v, originPt, baselineS, baselineI,
     plt.ylabel("Deflection (nm)")
     plt.xlabel("Z-position (nm)")
     try:
-        plt.axis([-100, 10, min(retractD)-5, 20])
+        plt.axis([-150, 10, min(retractD)-5, 20])
     except ValueError:
         plt.axis([-100, 10, -5, 20])
-    plt.gca().xaxis.set_major_locator(plt.MultipleLocator(10))
+    plt.gca().xaxis.set_major_locator(plt.MultipleLocator(15))
     plt.grid(True, which="both")
 
     plt.subplot(2, 3, 5)
     plt.title("Retract")
-    plt.plot(separation, retractD, ',')
+    plt.plot(retractZ, retractD, ',')
     plt.plot(0, 0, 'ro')
     plt.ylabel("Deflection (nm)")
     plt.xlabel("Separation (nm)")
@@ -72,7 +72,7 @@ def plotEverything(currentpic, v, originPt, baselineS, baselineI,
     plt.plot(retractZ, smooth3, ',k')
     plt.plot(0, 0, 'ro')
     plt.ylabel("Deflection (nm)")
-    plt.xlabel("Separation (nm)")
+    plt.xlabel("Smoothed Force (nN)")
     try:
         plt.axis([-50, 10, minS3*1.1, maxS3*0.1])
     except ValueError:

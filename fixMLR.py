@@ -47,7 +47,7 @@ for x in range(len(outputDF)):
     VboundsI = [outputDF.iloc[x, 6], outputDF.iloc[x, 7], outputDF.iloc[x, 8],
                 outputDF.iloc[x, 9], outputDF.iloc[x, 10]]
 
-    if not cstart == bstart:
+    if (cstart == bstart) or (cstart != bstart):
         print('Fixing {}...'.format(f_name), end='')
 
         currentpic = f_name[:-4] + '.png'

@@ -3,6 +3,7 @@ from os import path, listdir, makedirs
 from tkinter import Tk, filedialog
 import numpy as np
 import multiprocessing as mp
+import pandas as pd
 
 
 def outputFiles(dataFiles, num, addon):

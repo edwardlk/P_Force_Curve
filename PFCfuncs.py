@@ -329,7 +329,7 @@ def fitToWLCmodel(modelName, ydata, xdata):
     L_CG = max(xdata)
     gmodel = Model(modelName, nan_policy='omit')
     gmodel.set_param_hint('L_C', value=1.5*L_CG, min=0.1*L_CG, max=5.0*L_CG)
-    gmodel.set_param_hint('L_P', value=3.0, min=0.0, max=100.0)
+    gmodel.set_param_hint('L_P', value=3.0, min=0.0, max=500.0)
     params = gmodel.make_params()
     result = gmodel.fit(ydata, params, x=xdata)
     # print('parameter names: {}'.format(gmodel.param_names))
