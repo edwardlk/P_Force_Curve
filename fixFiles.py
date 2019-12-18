@@ -32,7 +32,7 @@ def dataAlign(x, srcDir, dstDir, dataFiles, dataOutput):
             pass
         totalLines = i + 1
 
-    foot1 = int(totalLines/2) - 3
+    foot1 = int(totalLines/2) - 4
     head2 = int(totalLines/2) + 11
 
     Ch1Table = np.genfromtxt(cFilePath, skip_header=11, skip_footer=foot1)
@@ -40,8 +40,16 @@ def dataAlign(x, srcDir, dstDir, dataFiles, dataOutput):
 
     combinedFile = np.hstack((Ch1Table, DeflectTable))
 
-    np.savetxt(path.join(dstDir, outputfile), combinedFile,
-               header="x(s) y0(V) x(s) y1(m)", comments="")
+    ch1ys = ''
+    deflTys = ''
+    for x1 in range(Ch1Table.shape[1] - 1):
+        ch1ys = ch1ys + ' y{}(V)'.format(x1)
+        deflTys = deflTys + ' y{}(nm)'.format(x1)
+
+    headtxt ='x(m)' + deflTys
+
+    np.savetxt(path.join(dstDir, outputfile), DeflectTable,
+               header=headtxt, comments="")
     print("Completed ", x+1, " of ", len(dataFiles), " files.")
 
 
@@ -54,7 +62,7 @@ def main():
             "the data files you wish to reformat.")
 
     srcDir = filedialog.askdirectory(parent=root, initialdir="/", title=info)
-    dstDir = path.join(srcDir, 'output')
+    dstDir = path.join(srcDir, 'forcecurves')
 
     start = time.time()
 
