@@ -10,13 +10,13 @@ import seaborn as sns
 
 def main():
 
-    testing = False
+    testing = True
     testingMulti = True
 
     if testing:
-        srcDir = R"F:\_data\Avidin-Biotin\fixmlrtest\RetractCSVs"
+        srcDir = R"F:\_data\Avidin-Biotin\2018-08-02_av-bioData\separated_files\RetractCSVs"
         rupFileLoc = (
-            R"F:\_data\Avidin-Biotin\fixmlrtest\RetractCSVs\dataframe.xlsx")
+            R"F:\_data\Avidin-Biotin\2018-08-02_av-bioData\separated_files\RetractCSVs\dataframe.xlsx")
     else:
         # Designate input and output directories.
         root = Tk()
@@ -90,15 +90,26 @@ def main():
     for x in range(20):
         df1 = df[df['model#'] == 'improved 3']
         sns.distplot(df1['rupture force (pN)'], bins=numB, label='improved 3')
-        df2 = df[df['model#'] == 3]
-        sns.distplot(df2['rupture force (pN)'], bins=numB, label='3')
+        # df2 = df[df['model#'] == 3]
+        # sns.distplot(df2['rupture force (pN)'], bins=numB, label='3')
         plt.legend(prop={'size': 12})
         plt.xlabel('rupture force (pN)', fontsize=15)
         plt.ylabel("Frequency", fontsize=15)
-        plt.savefig(path.join(csvDir, 'improved3-{}'.format(numB)))
+        plt.savefig(path.join(csvDir, 'F_r-imp3-{}'.format(numB)))
         plt.close()
         numB += 1
-
+    numB = 10
+    for x in range(20):
+        df1 = df[df['model#'] == 'improved 3']
+        sns.distplot(df1['L_C'], bins=numB, label='improved 3')
+        # df2 = df[df['model#'] == 3]
+        # sns.distplot(df2['rupture force (pN)'], bins=numB, label='3')
+        plt.legend(prop={'size': 12})
+        plt.xlabel('L_C', fontsize=15)
+        plt.ylabel("Frequency", fontsize=15)
+        plt.savefig(path.join(csvDir, 'L_C-imp3-{}'.format(numB)))
+        plt.close()
+        numB += 1
 
     print("Finished analyzing", path.split(srcDir)[1])
     print('It took {:.2f} seconds to analyze %d files.'.format(
