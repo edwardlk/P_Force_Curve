@@ -1,10 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
-from tkinter import Tk, filedialog
-from os import *
 from scipy import stats
-from scipy.optimize import curve_fit
 
 
 def multiLinReg(x_data, y_data):

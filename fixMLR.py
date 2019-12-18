@@ -100,7 +100,8 @@ for x in range(len(outputDF)):
 
         separation = retractZ - retractD
 
-        retr1, retr2, retr3, retr4, retr5 = stats.linregress(retractT, retractZ)
+        retr1, retr2, retr3, retr4, retr5 = stats.linregress(retractT,
+                                                             retractZ)
 
         smDict = {
             'smooth1': 11,

@@ -2,21 +2,20 @@ import time
 from tkinter import Tk, filedialog
 import multiprocessing as mp
 from os import path, listdir, makedirs
-from PFCfuncs import outputFiles, mainAnalysis
+from PFCfuncs import outputFiles, mainAnalysis, mainAnalysis2
 import pandas as pd
 
 
 def main():
     # Designate input and output directories.
 
-    testFile = False
+    testFile = True
     testMulti = True
 
     if testFile:
-        # srcDir = R"F:\TEST\fullAnalysisTest"
-        # srcDir = R'D:\TEST'
-        srcDir = R'F:\TEST\errors'
-        srcDir = R'D:\mlr_fix_test'
+        srcDir = R'F:\_data\testing data\avbio-spec'
+        srcDir = R'F:\_data\Avidin-Biotin\2018-08-09_av-bioData\separated_files'
+        srcDir = R'F:\_data\Avidin-Biotin\2018-08-09_av-bioData\forcecurves\separated_files'
     else:
         root = Tk()
         root.withdraw()
@@ -66,8 +65,10 @@ def main():
 
     if testMulti:
         for x1 in range(len(dataFiles)):
-            mainAnalysis(x1, k_L, srcDir, dstDir, csvDir, dataFiles, dataImg,
-                         csvOutput, csvRupture, outputPkl)
+            # mainAnalysis(x1, k_L, srcDir, dstDir, csvDir, dataFiles, dataImg,
+            #              csvOutput, csvRupture, outputPkl)
+            mainAnalysis2(x1, k_L, srcDir, dstDir, csvDir, dataFiles, dataImg,
+                          csvOutput, csvRupture, outputPkl)
     else:
         pool = mp.Pool(processes=5)
         for x1 in range(len(dataFiles)):

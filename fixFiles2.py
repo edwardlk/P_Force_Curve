@@ -16,6 +16,7 @@ def outputFiles(fileName, num, addon, numSpecs):
 
 
 srcDir = R'F:\_data\Avidin-Biotin\2018-08-09_av-bioData'
+srcDir = R'F:\_data\Avidin-Biotin\2018-08-09_av-bioData\forcecurves'
 
 outDir = path.join(srcDir, 'separated_files')
 
@@ -28,14 +29,14 @@ if not path.exists(outDir):
 else:
     dataFiles.remove('separated_files')
 
-rows2skip = [0, 1, 2, 3, 4, 5, 6, 7, 9, 10]
+# rows2skip = [0, 1, 2, 3, 4, 5, 6, 7, 9, 10]
 
 for x in range(len(dataFiles)):
-    data_file = pd.read_table(path.join(srcDir, dataFiles[x]),
-                              skipinitialspace=True, skiprows=rows2skip)
+    data_file = pd.read_table(path.join(srcDir, dataFiles[x]), delimiter=' ')
+                              # skipinitialspace=True, skiprows=rows2skip)
 
     numSpecs = data_file.shape[1] - 1
-    out_files = outputFiles(dataFiles[x], 8, '.txt', numSpecs)
+    out_files = outputFiles(dataFiles[x], 11, '.txt', numSpecs)
 
     col_names = data_file.columns
 
