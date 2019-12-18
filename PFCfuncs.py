@@ -6,7 +6,7 @@ from lmfit import Model
 from os import path
 import pandas as pd
 from polymerModels import WLCmodelNoXY, WLCmodelImproved
-from PFCplots import plotEverything, plotFits
+from PFCplots import plotEverything, plotEverything2, plotFits
 
 
 def outputFiles(dataFiles, addon):
@@ -33,7 +33,7 @@ def fitOutputFiles(rupGuess, addon):
 
     for x in temp:
         for y in range(temp[x]):
-            L.append(x[:-10] + 'C' + str(y+1) + addon)
+            L.append(x[:-4] + 'C' + str(y+1) + addon)
     L.sort()
     return L
 
@@ -323,6 +323,152 @@ def mainAnalysis(x1, k_L, srcDir, dstDir, csvDir,
     print("Completed ", x1+1, " of ", len(dataFiles), " files.")
 
 
+def mainAnalysis2(x1, k_L, srcDir, dstDir, csvDir,
+                  dataFiles, dataImg, csvOutput, csvRupture, outputPkl):
+    """ Info
+    """
+    currentfile = dataFiles[x1]
+    currentpic = dataImg[x1]
+    outputfile = csvOutput[x1]
+    # ruptureFile = csvRupture[x1]
+
+    dataFile = np.genfromtxt(path.join(srcDir, currentfile), skip_header=1,
+                             delimiter=',')
+
+    # units: m, nm
+    (distance, deflection) = dataFile.T
+    distance = distance*1000000000  # convert distance m to nm
+
+    # Stiffness
+    # k_L = 0.034  # 0.034  # N/m
+
+    # Find boundaries of setup, approach, retract regions
+    # using z-piezo position
+    # VboundsXY, VboundsI = returnBoundaries(timeCh1, distance, 500)
+
+    # Rescaled vectors to simplify following functions
+    # approachT = timeCh1[VboundsI[1]:VboundsI[2]]
+    # approachZ = 4.77*13*distance[VboundsI[1]:VboundsI[2]]
+    # approachD = deflection[VboundsI[1]:VboundsI[2]]
+    # retractT = timeCh1[VboundsI[3]:VboundsI[4]]
+    retractZ_orig = distance
+    retractD_orig = deflection
+
+    # Remove data if deflection out of range
+    maxDefl = max(retractD_orig)
+    x = len(retractD_orig) - 1
+    while retractD_orig[x] == maxDefl:
+        x -= 1
+        if x > len(retractD_orig)-1:
+            break
+
+    # retractT = retractT[x:]
+    retractZ_orig = retractZ_orig[:x]
+    retractD_orig = retractD_orig[:x]
+
+    # Fit retract curve to get baseline and contact line
+    try:
+        (baselineS, baselineI,
+         contactS, contactI) = MLR.multiLinReg2(retractZ_orig, retractD_orig)
+    except Exception:
+        print("File {} failed".format(currentfile))
+        plt.plot(retractZ_orig, retractD_orig)
+        plt.xlabel("Z-position (nm)")
+        plt.ylabel("Deflection (nm)")
+        plt.savefig(path.join(dstDir, currentpic))
+        plt.close()
+
+    try:
+        x_shift = (baselineI - contactI)/(contactS - baselineS)
+        y_shift = contactS * x_shift + contactI
+    except Exception:
+        x_shift = 0.0
+        y_shift = 0.0
+
+    retractZ = -1.0 * (retractZ_orig - x_shift)
+    retractD = -1.0 * (retractD_orig - y_shift)
+
+    try:
+        originPt = abs(retractZ).argmin()
+    except Exception:
+        originPt = 0
+
+    retractD = (retractD - baselineS * retractZ) / (contactS - baselineS)
+
+    # stop = np.argmin(abs(retractZ - min(retractZ) * 0.95))
+    # start = np.argmin(abs(retractZ - min(retractZ) * 0.60))
+    # retractD = (retractD - np.average(retractD[start:stop]))
+
+    separation = retractZ - retractD
+
+    # Linear Regression on approach/retract regions
+    # __1 = slope ; __2 = intercept ; __3 = r_value ;
+    # __4 = p_value ; __5 = std_error
+    # Setup Speed
+    # setup1, setup2, setup3, setup4, setup5 = (
+    #     stats.linregress(timeCh1[0:VboundsI[0]], distance[0:VboundsI[0]]))
+    # print "setup v =", abs(setup1*13*4.77), "nm/s"
+
+    # Approach Speed
+    # appr1, appr2, appr3, appr4, appr5 = stats.linregress(approachT, approachZ)
+    # print "approch v =", abs(appr1*13*4.77), "nm/s"
+
+    # Retract Speed
+    # retr1, retr2, retr3, retr4, retr5 = stats.linregress(retractT, retractZ)
+    # print "retract v =", abs(retr1*13*4.77), "nm/s"
+    retr1 = 999
+
+    # Force smoothing
+    smDict = {
+        'smooth1': 11,
+        'smooth2': 21,
+        'smooth3': 31,
+        'smooth4': 41,
+    }
+    smooth1 = smooth((k_L*retractD), smDict['smooth1'], 'hanning')
+    smooth2 = smooth((k_L*retractD), smDict['smooth2'], 'hanning')
+    smooth3 = smooth((k_L*retractD), smDict['smooth3'], 'hanning')
+    smooth4 = smooth((k_L*retractD), smDict['smooth4'], 'hanning')
+
+    # calc minGuess
+    minX = np.argmin(retractD)
+    minLoc = retractZ[minX]
+
+    # Output Calculations
+    output = np.column_stack((retractZ, separation, retractD, k_L*retractD,
+                              smooth1, smooth2, smooth3, smooth4))
+    # ruptureOut = np.column_stack((separation[originPt:ruptureI],
+    #                               smooth2[originPt:ruptureI]))
+
+    csvheader = ('z-position(nm),separation(nm),retractD,'
+                 'Force(nN),Force_{}(nN),Force_{}(nN),Force_{}(nN),'
+                 'Force_{}(nN),v={} nm/s,k_L={}')
+    csvheader = csvheader.format(
+        smDict['smooth1'], smDict['smooth2'], smDict['smooth3'],
+        smDict['smooth4'], abs(retr1), k_L)
+
+    # ruptureH = "separation(nm),Force_25(nN)"
+
+    np.savetxt(path.join(csvDir, outputfile), output, header=csvheader,
+               comments="", delimiter=',')
+
+    # Figures
+    plotEverything2(currentpic, abs(retr1), originPt, baselineS, baselineI,
+                    contactS, contactI, retractZ_orig, retractD_orig, smooth3,
+                    separation, distance, retractZ, retractD, x_shift, y_shift)
+    # plt.show()
+    plt.savefig(path.join(dstDir, currentpic))
+    plt.close()
+
+    f_num = int(currentfile[6:10])
+    outputDF = pd.read_pickle(outputPkl)
+    outputDF.loc[len(outputDF)] = [f_num, currentfile, minLoc, 0.0, x_shift,
+                                   x_shift, 0, 0, 0, 0, len(retractZ)]
+    outputDF.to_pickle(outputPkl)
+
+    print("Completed ", x1+1, " of ", len(dataFiles), " files.")
+
+
 def fitToWLCmodel(modelName, ydata, xdata):
     """ Info
     """
@@ -369,6 +515,10 @@ def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
 
     dataFile = pd.read_csv(path.join(srcDir, currentfile))
 
+    # if col1[0] < 0: data_frame = data_frame.sort_index(axis=1 ,ascending=True)
+    dataFile = dataFile.sort_index(axis=0, ascending=False)
+    dataFile = dataFile.reset_index()
+
     # list of y-data columns from files
     # ['z-position(nm)', 'separation(nm)', 'retractD', 'Force(nN)',
     #  'Force_#1(nN)', 'Force_#2(nN)', 'Force_#3(nN)', 'Force_#4(nN)',
@@ -383,7 +533,7 @@ def fitAnalysis(x, srcDir, imgDir, csvDir, rupGuess, dataFiles, rupImg,
     # Find min near minGuess, get row #'s of min and fitStart
     temp = abs(dataFile['z-position(nm)'] - minGuess)
     minGuessID = temp.idxmin()
-    minGuessRange = int(0.5 * len(dataFile['z-position(nm)']) / (
+    minGuessRange = int(1.0 * len(dataFile['z-position(nm)']) / (
         dataFile['z-position(nm)'].max() - dataFile['z-position(nm)'].min()))
     minID = dataFile[yDataCol][(minGuessID-minGuessRange):
                                (minGuessID+minGuessRange)].idxmin()
