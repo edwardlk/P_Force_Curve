@@ -1,4 +1,5 @@
 import time
+import datetime
 from tkinter import Tk, filedialog
 import pandas as pd
 import multiprocessing as mp
@@ -6,6 +7,46 @@ from os import path, listdir, makedirs
 from PFCfuncs import fitOutputFiles, fitAnalysis
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
+
+
+def distPlotting(csvDir, speedsList, df, modelName):
+    numSpeeds = len(speedsList)
+
+    if type(modelName) == str:
+        mName = modelName.replace(' ', '')
+    else:
+        mName = modelName
+
+    for x in range(numSpeeds):
+        df1 = df[df['model#'] == modelName]
+        df1 = df1[df1['v(nm/s)'] == speedsList[x]]
+        sns.distplot(df1['rupture force (pN)'], kde=False)
+        plt.xlabel('rupture force (pN)', fontsize=15)
+        plt.ylabel("Frequency", fontsize=15)
+        plt.title('Rupture Forces @ {} nm/s'.format(speedsList[x]))
+        plt.savefig(path.join(csvDir, 'F_r-{}-{:.0f}nmps'.format(mName, speedsList[x])))
+        plt.close()
+
+    for x in range(numSpeeds):
+        df1 = df[df['model#'] == modelName]
+        df1 = df1[df1['v(nm/s)'] == speedsList[x]]
+        sns.distplot(df1['L_C'], kde=False)
+        plt.xlabel('L_C', fontsize=15)
+        plt.ylabel("Frequency", fontsize=15)
+        plt.title('Contour Lengths @ {} nm/s'.format(speedsList[x]))
+        plt.savefig(path.join(csvDir, 'L_C-{}-{:.0f}nmps'.format(mName, speedsList[x])))
+        plt.close()
+
+    for x in range(numSpeeds):
+        df1 = df[df['model#'] == modelName]
+        df1 = df1[df1['v(nm/s)'] == speedsList[x]]
+        sns.distplot(df1['L_P'], kde=False)
+        plt.xlabel('L_P', fontsize=15)
+        plt.ylabel("Frequency", fontsize=15)
+        plt.title('Persistence Lengths @ {} nm/s'.format(speedsList[x]))
+        plt.savefig(path.join(csvDir, 'L_P-{}-{:.0f}nmps'.format(mName, speedsList[x])))
+        plt.close()
 
 
 def main():
@@ -86,34 +127,16 @@ def main():
     df.to_excel(path.join(csvDir, 'dataframe.xlsx'), sheet_name='Sheet1')
 
     # plot histograms
-    numB = 10
-    for x in range(20):
-        df1 = df[df['model#'] == 'improved 3']
-        sns.distplot(df1['rupture force (pN)'], bins=numB, label='improved 3')
-        # df2 = df[df['model#'] == 3]
-        # sns.distplot(df2['rupture force (pN)'], bins=numB, label='3')
-        plt.legend(prop={'size': 12})
-        plt.xlabel('rupture force (pN)', fontsize=15)
-        plt.ylabel("Frequency", fontsize=15)
-        plt.savefig(path.join(csvDir, 'F_r-imp3-{}'.format(numB)))
-        plt.close()
-        numB += 1
-    numB = 10
-    for x in range(20):
-        df1 = df[df['model#'] == 'improved 3']
-        sns.distplot(df1['L_C'], bins=numB, label='improved 3')
-        # df2 = df[df['model#'] == 3]
-        # sns.distplot(df2['rupture force (pN)'], bins=numB, label='3')
-        plt.legend(prop={'size': 12})
-        plt.xlabel('L_C', fontsize=15)
-        plt.ylabel("Frequency", fontsize=15)
-        plt.savefig(path.join(csvDir, 'L_C-imp3-{}'.format(numB)))
-        plt.close()
-        numB += 1
+    speedsList = df['v(nm/s)'].unique()
+    modelList = df['model#'].unique()
+    for x in range(len(modelList)):
+        distPlotting(csvDir, speedsList, df, modelList[x])
+
+    totalTime = str(datetime.timedelta(seconds=int(time.time()-start)))
 
     print("Finished analyzing", path.split(srcDir)[1])
-    print('It took {:.2f} seconds to analyze %d files.'.format(
-          time.time()-start) % (len(dataFiles)))
+    print('It took {} (H:M:S) seconds to analyze {} files.'.format(
+        totalTime, len(dataFiles)))
 
 
 if __name__ == '__main__':
