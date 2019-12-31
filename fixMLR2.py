@@ -37,8 +37,8 @@ outputPkl = path.join(csvDir, "dummy.pkl")
 outputDF = pd.read_excel(outputCSV, index_col=0)
 outputDF.to_pickle(outputPkl)
 
-# 0     1           2               3           4       5
-# f_num filename    min_location    fit_start   cStart	bStart
+# 0     1           2               3           4       5       6
+# f_num filename    min_location    fit_start   cStart	bStart  v_r
 # 6     7   8   9   10
 # Vb1   Vb2 Vb3 Vb4 Vb5
 
@@ -48,8 +48,9 @@ for x in range(len(outputDF)):
     fit_st = outputDF.iloc[x, 3]
     cstart = outputDF.iloc[x, 4]
     bstart = outputDF.iloc[x, 5]
-    VboundsI = [outputDF.iloc[x, 6], outputDF.iloc[x, 7], outputDF.iloc[x, 8],
-                outputDF.iloc[x, 9], outputDF.iloc[x, 10]]
+    v_r = outputDF.iloc[x, 6]
+    VboundsI = [outputDF.iloc[x, 7], outputDF.iloc[x, 8], outputDF.iloc[x, 9],
+                outputDF.iloc[x, 10], outputDF.iloc[x, 11]]
 
     if (cstart != bstart):
         print('Fixing {}...'.format(f_name), end='')
@@ -64,7 +65,7 @@ for x in range(len(outputDF)):
         oldCSV = pd.read_csv(path.join(csvDir, outputData))
         oldCSVh = oldCSV.columns
 
-        retr1 = float(oldCSVh[8][2:-5])
+        retr1 = v_r
         k_L = float(oldCSVh[9][4:])
 
         (distance, deflection) = dataFile.T
@@ -108,7 +109,7 @@ for x in range(len(outputDF)):
         separation = retractZ - retractD
 
         # retr1, retr2, retr3, retr4, retr5 = stats.linregress(retractT, retractZ)
-        retr1 = 999
+        # retr1 = 999
 
         smDict = {
             'smooth1': 11,
@@ -138,8 +139,8 @@ for x in range(len(outputDF)):
                         contactS, contactI, retractZ_orig, retractD_orig, smooth1,
                         separation, distance, retractZ, retractD, x_shift, y_shift)
         # plt.show()
-        # print(path.join(imgDir, currentpic))
-        plt.savefig(path.join(imgDir, currentpic))
+
+        # plt.savefig(path.join(imgDir, currentpic))
         plt.savefig(path.join(imgFitDir, currentpic))
         plt.close()
 

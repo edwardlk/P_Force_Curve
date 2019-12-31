@@ -463,7 +463,7 @@ def mainAnalysis2(x1, k_L, srcDir, dstDir, csvDir,
     f_num = int(currentfile[6:10])
     outputDF = pd.read_pickle(outputPkl)
     outputDF.loc[len(outputDF)] = [f_num, currentfile, minLoc, 0.0, x_shift,
-                                   x_shift, 0, 0, 0, 0, len(retractZ)]
+                                   x_shift, retr1, 0, 0, 0, 0, len(retractZ)]
     outputDF.to_pickle(outputPkl)
 
     print("Completed ", x1+1, " of ", len(dataFiles), " files.")

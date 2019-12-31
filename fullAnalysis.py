@@ -1,4 +1,5 @@
 import time
+import datetime
 from tkinter import Tk, filedialog
 import multiprocessing as mp
 from os import path, listdir, makedirs
@@ -9,13 +10,11 @@ import pandas as pd
 def main():
     # Designate input and output directories.
 
-    testFile = True
+    testFile = False
     testMulti = True
 
     if testFile:
-        srcDir = R'F:\_data\testing data\avbio-spec'
-        srcDir = R'F:\_data\Avidin-Biotin\2018-08-09_av-bioData\separated_files'
-        srcDir = R'F:\_data\Avidin-Biotin\2018-08-09_av-bioData\forcecurves\separated_files'
+        srcDir = R'F:\_data\Avidin-Biotin\2018-08-02_av-bioData\separated_files'
     else:
         root = Tk()
         root.withdraw()
@@ -57,7 +56,7 @@ def main():
     outputPkl = path.join(csvDir, "dummy.pkl")
     outputCSV = path.join(csvDir, 'dataframe.xlsx')
     col_list = ['fnum', 'filename', 'min_location', 'fit_start', 'cStart',
-                'bStart', 'Vb1', 'Vb2', 'Vb3', 'Vb4', 'Vb5']
+                'bStart', 'v_r', 'Vb1', 'Vb2', 'Vb3', 'Vb4', 'Vb5']
     df = pd.DataFrame(columns=col_list)
     df.to_pickle(outputPkl)
     # df.to_excel(outputCSV, sheet_name='Sheet1')
@@ -83,9 +82,10 @@ def main():
     outputDF.sort_values(by=['fnum'])
     outputDF.to_excel(outputCSV, sheet_name='Sheet1')
 
+    totalTime = str(datetime.timedelta(seconds=int(time.time()-start)))
+
     print("Finished analyzing", path.split(srcDir)[1])
-    print('It took {:.2f} seconds to analyze {} files.'.format(
-          time.time()-start, len(dataFiles)))
+    print('It took {} to analyze {} files.'.format(totalTime, len(dataFiles)))
 
 
 if __name__ == '__main__':
