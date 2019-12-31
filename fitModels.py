@@ -7,7 +7,7 @@ from os import path, listdir, makedirs
 from PFCfuncs import fitOutputFiles, fitAnalysis
 import matplotlib.pyplot as plt
 import seaborn as sns
-import numpy as np
+# import numpy as np
 
 
 def distPlotting(csvDir, speedsList, df, modelName):
@@ -25,7 +25,8 @@ def distPlotting(csvDir, speedsList, df, modelName):
         plt.xlabel('rupture force (pN)', fontsize=15)
         plt.ylabel("Frequency", fontsize=15)
         plt.title('Rupture Forces @ {} nm/s'.format(speedsList[x]))
-        plt.savefig(path.join(csvDir, 'F_r-{}-{:.0f}nmps'.format(mName, speedsList[x])))
+        plt.savefig(path.join(
+                    csvDir, 'F_r-{}-{:.0f}nmps'.format(mName, speedsList[x])))
         plt.close()
 
     for x in range(numSpeeds):
@@ -35,7 +36,8 @@ def distPlotting(csvDir, speedsList, df, modelName):
         plt.xlabel('L_C', fontsize=15)
         plt.ylabel("Frequency", fontsize=15)
         plt.title('Contour Lengths @ {} nm/s'.format(speedsList[x]))
-        plt.savefig(path.join(csvDir, 'L_C-{}-{:.0f}nmps'.format(mName, speedsList[x])))
+        plt.savefig(path.join(
+                    csvDir, 'L_C-{}-{:.0f}nmps'.format(mName, speedsList[x])))
         plt.close()
 
     for x in range(numSpeeds):
@@ -45,7 +47,8 @@ def distPlotting(csvDir, speedsList, df, modelName):
         plt.xlabel('L_P', fontsize=15)
         plt.ylabel("Frequency", fontsize=15)
         plt.title('Persistence Lengths @ {} nm/s'.format(speedsList[x]))
-        plt.savefig(path.join(csvDir, 'L_P-{}-{:.0f}nmps'.format(mName, speedsList[x])))
+        plt.savefig(path.join(
+                    csvDir, 'L_P-{}-{:.0f}nmps'.format(mName, speedsList[x])))
         plt.close()
 
 

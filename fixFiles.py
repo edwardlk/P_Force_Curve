@@ -3,7 +3,7 @@ from os import path, listdir, makedirs
 from tkinter import Tk, filedialog
 import numpy as np
 import multiprocessing as mp
-import pandas as pd
+# import pandas as pd
 
 
 def outputFiles(dataFiles, num, addon):
@@ -38,7 +38,7 @@ def dataAlign(x, srcDir, dstDir, dataFiles, dataOutput):
     Ch1Table = np.genfromtxt(cFilePath, skip_header=11, skip_footer=foot1)
     DeflectTable = np.genfromtxt(cFilePath, skip_header=head2)
 
-    combinedFile = np.hstack((Ch1Table, DeflectTable))
+    # combinedFile = np.hstack((Ch1Table, DeflectTable))
 
     ch1ys = ''
     deflTys = ''
@@ -46,7 +46,7 @@ def dataAlign(x, srcDir, dstDir, dataFiles, dataOutput):
         ch1ys = ch1ys + ' y{}(V)'.format(x1)
         deflTys = deflTys + ' y{}(nm)'.format(x1)
 
-    headtxt ='x(m)' + deflTys
+    headtxt = 'x(m)' + deflTys
 
     np.savetxt(path.join(dstDir, outputfile), DeflectTable,
                header=headtxt, comments="")
