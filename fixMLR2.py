@@ -15,7 +15,7 @@ fileTest = True
 # print('k_L = {}'.format(k_L))
 
 if fileTest:
-    srcDir = R'F:\_data\Avidin-Biotin\2018-08-02_av-bioData\separated_files'
+    srcDir = R'F:\_data\Avidin-Biotin\2018-08-09_av-bioData\forcecurves\separated_files'
 else:
     root = Tk()
     root.withdraw()

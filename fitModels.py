@@ -58,9 +58,9 @@ def main():
     testingMulti = True
 
     if testing:
-        srcDir = R"F:\_data\Avidin-Biotin\2018-08-02_av-bioData\separated_files\RetractCSVs"
+        srcDir = R"F:\_data\Avidin-Biotin\2018-08-09_av-bioData\forcecurves\separated_files\RetractCSVs"
         rupFileLoc = (
-            R"F:\_data\Avidin-Biotin\2018-08-02_av-bioData\separated_files\RetractCSVs\dataframe.xlsx")
+            R"F:\_data\Avidin-Biotin\2018-08-09_av-bioData\forcecurves\separated_files\RetractCSVs\dataframe.xlsx")
     else:
         # Designate input and output directories.
         root = Tk()
